@@ -1,39 +1,6 @@
-# 群晖同步助手 · Synology Sync
+# 群晖同步助手
 
-![Version](https://img.shields.io/badge/version-1.0.1-CC785C)
+Valiora Skills · 版本 `1.0.1`
 
-A local Codex skill and CLI for verified Synology File Station transfers.
-
-## Install
-
-Install from the LovStudio catalog:
-
-```bash
-npx lovstudio skills add sync-with-synology
-```
-
-For a local source checkout:
-
-```bash
-~/.agents/skills/lov-sync-with-synology/scripts/install.sh
-~/.agents/skills/lov-sync-with-synology/scripts/install-cli.sh
-```
-
-## Use
-
-```bash
-synology-cli config
-synology-cli doctor
-synology-cli run --source ~/Music/MP3 --remote-dir /home/Music/MP3 --dry-run
-synology-cli run --source ~/Music/MP3 --remote-dir /home/Music/MP3 --delete-mode trash
-# Irreversible local deletion, only after explicit confirmation:
-synology-cli run --source ~/Music/MP3 --remote-dir /home/Music/MP3 --delete-mode unlink
-```
-
-## Test
-
-```bash
-~/.agents/skills/lov-sync-with-synology/scripts/test_e2e.sh
-```
-
-The test uses a local fake HTTPS DSM and does not upload anything to a real NAS.
+- [使用说明](SKILL.md)
+- [返回 Valiora Skills 目录](../../CATALOG.md)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "本机反馈与改进"
+  short_description: "记录 AI 交付反馈，跟踪修复验证，按项目查看本机统计与未完成事项"
+  default_prompt: "使用 $local-feedback-loop 查看我的反馈统计和未完成的改进。"

@@ -1,0 +1,319 @@
+#!/usr/bin/env python3
+"""Validate a multi-track BGM cue sheet against the film and the analyzed library (stdlib only).
+
+ERROR blocks the mix:
+  - unknown or unplayable track; source range outside the track; cue outside the film; fades > cue
+  - a cue without a story/emotion rationale
+  - more than 2 cues sounding at once
+  - > 1.0 s of sung lyrics in the dialogue language under dialogue (Chinese lyrics under Chinese speech);
+    this holds for every mix intent, feature moments included. The one exception is a cue carrying
+    "lyric_override": {"reason", "author_quote"} because the author explicitly asked for this song under
+    the dialogue, or said not to stop the music for speech: the clash is then INFO and listed in
+    "released" (cue, clash spans, reason, author quote) for the report's release list
+  - a mix_intents range with an unknown intent, outside the film, or overlapping another range
+  - music inside a declared silence later than --silence-tail s after it starts (a designed tail may ring out)
+WARN needs a written reason or a fix:
+  - other-language singing, or a track with unknown lyrics, under dialogue for > 0.5 s
+  - lyrics under an on-screen text card, unless the cue sets "lyric_feature": true (the lyric IS the point)
+  - overlapping cues that are not a real cross-fade (overlap >= 1.0 s, both sides faded)
+  - entry/exit inside a loud passage of the track with a fade < 2 s
+  - a music-free span longer than --max-gap that is not declared in "silences" with a reason
+    (6 s by default; 2 s with --preset narrative, where the score runs continuously)
+  - fewer distinct tracks than --min-tracks
+  - a blend/feature range without a reason (music under the voice is a deliberate choice)
+  - a run of >= --card-run short text cards (each <= --card-max s, gaps <= 1 s): transitions need
+    breathing room (holds, music-led interludes, J/L-cuts, longer dissolves), not a card chain
+  - pacing (provisional values from the Kailash director's cut): a text card shorter than its reading
+    time max(2.2, chars / 4.5 + 0.6) s; under --hold-min s of picture after a beat's last word;
+    >= --beat-run consecutive beats shorter than --beat-min s; a chapter that opens on a hard cut
+INFO: library usage, coverage, declared silences, same track back-to-back.
+
+film.json:  {"duration", "dialogue_language"?: "zh", "voice_spans": [{"t0", "t1"}],
+             "text_spans"?: [{"t0", "t1", "text"}], "chapters"?: [{"t"}],
+             "beats"?: [{"t0", "t1", "transition_in"?: "cut|dissolve|dip|fade"}]}
+cues.json:  {"cues": [{"id", "track", "track_in", "at", "dur", "fade_in", "fade_out", "rationale",
+                       "lyric_feature"?, "lyric_override"?: {"reason", "author_quote"}}],
+             "silences"?: [{"t0", "t1", "reason"}],
+             "mix_intents"?: [{"t0", "t1", "intent": "clear|blend|feature", "reason"}]}
+"""
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+# Narrative films (vlog, travel, documentary) keep the score running end to end; silence is only for
+# passages the author asked for, so an undeclared gap over 2 s is already a hole in the score.
+PRESETS = {"default": {"max_gap": 6.0}, "narrative": {"max_gap": 2.0}}
+
+
+def lang(text):
+    if re.search(r"[぀-ヿ]", text):
+        return "ja"
+    if re.search(r"[᠀-᢯]", text):
+        return "mn"
+    if re.search(r"[一-鿿]", text):
+        return "zh"
+    if re.search(r"[A-Za-z]", text):
+        return "en"
+    return "other"
+
+
+def overlap(a0, a1, b0, b1):
+    return max(0.0, min(a1, b1) - max(a0, b0))
+
+
+def lyric_spans(cue, track):
+    """Sung lines of a track mapped onto film time and clipped to the cue."""
+    out = []
+    for s in track.get("sung_lines", []):
+        a = cue["at"] + (s["t0"] - cue["track_in"])
+        b = cue["at"] + (s["t1"] - cue["track_in"])
+        a, b = max(a, cue["at"]), min(b, cue["at"] + cue["dur"])
+        if b > a:
+            out.append((a, b, s.get("lang") or lang(s["text"])))
+    return out
+
+
+def card_runs(texts, run=3, card_max=5.0, gap=1.0):
+    """Runs of >= run consecutive short text cards with small gaps between them."""
+    out, cur = [], []
+    for t0, t1 in sorted(texts):
+        short = t1 - t0 <= card_max
+        if short and cur and t0 - cur[-1][1] <= gap:
+            cur.append((t0, t1))
+            continue
+        if len(cur) >= run:
+            out.append(cur)
+        cur = [(t0, t1)] if short else []
+    if len(cur) >= run:
+        out.append(cur)
+    return out
+
+
+def pacing(film, beat_min=4.0, beat_run=3, hold_min=1.0):
+    """Editorial breathing-room warnings from text cards, beats, voice spans and chapters."""
+    out = []
+    cards = film.get("text_spans", [])
+    rushed = []
+    for t in cards:
+        chars = len(re.sub(r"\s", "", t.get("text", "")))
+        need = max(2.2, chars / 4.5 + 0.6)
+        if chars and t["t1"] - t["t0"] < need - 0.05:
+            rushed.append(f"{t['t0']:.1f}s {t['t1'] - t['t0']:.1f}<{need:.1f}")
+    if rushed:
+        out.append(f"{len(rushed)} of {len(cards)} text cards are shorter than their reading time "
+                   f"max(2.2, chars/4.5+0.6): " + ", ".join(rushed[:8]) + (" ..." if len(rushed) > 8 else ""))
+    beats = sorted(film.get("beats", []), key=lambda b: b["t0"])
+    voice = [(v["t0"], v["t1"]) for v in film.get("voice_spans", [])]
+    clipped = []
+    for b in beats:
+        ends = [v1 for v0, v1 in voice if b["t0"] < v1 <= b["t1"]]
+        if ends and b["t1"] - max(ends) < hold_min:
+            clipped.append(f"{b.get('id', '')}@{b['t0']:.1f}s {b['t1'] - max(ends):.1f}s")
+    if clipped:
+        out.append(f"{len(clipped)} beats cut less than {hold_min}s after their last word: "
+                   + ", ".join(clipped[:8]) + (" ..." if len(clipped) > 8 else ""))
+    run = []
+    for b in beats + [{"t0": float("inf"), "t1": float("inf")}]:
+        if b["t1"] - b["t0"] < beat_min:
+            run.append(b)
+            continue
+        if len(run) >= beat_run:
+            out.append(f"{len(run)} beats under {beat_min}s in a row {run[0]['t0']:.1f}-{run[-1]['t1']:.1f}s")
+        run = []
+    for ch in film.get("chapters", []):
+        t = ch.get("t", ch.get("t0"))
+        opener = next((b for b in beats if abs(b["t0"] - t) < 0.05), None)
+        if t and opener and opener.get("transition_in") == "cut":
+            out.append(f"chapter '{ch.get('title', '')}' at {t:.1f}s opens on a hard cut; dissolve, dip or fade in")
+    return out
+
+
+def lyric_release(override):
+    """(reason, author_quote) of a complete lyric_override, else None."""
+    if not isinstance(override, dict):
+        return None
+    reason, quote = (str(override.get(k, "")).strip() for k in ("reason", "author_quote"))
+    return (reason, quote) if reason and quote else None
+
+
+def validate(sheet, tracks, film, min_tracks=3, max_gap=6.0, card_run=3, card_max=5.0, silence_tail=2.0,
+             beat_min=4.0, beat_run=3, hold_min=1.0):
+    errors, warnings, info, released = [], [], [], []
+    cues = sheet["cues"]
+    playable, unplayable = tracks.get("playable", {}), tracks.get("unplayable", {})
+    dur = film["duration"]
+    speech = film.get("dialogue_language", "zh")
+    voice = [(v["t0"], v["t1"]) for v in film.get("voice_spans", [])]
+    texts = [(t["t0"], t["t1"]) for t in film.get("text_spans", [])]
+    for c in cues:
+        cid = c.get("id", "?")
+        if not str(c.get("rationale", "")).strip():
+            errors.append(f"{cid}: no rationale; every cue needs a story/emotion reason for this track here")
+        tr = playable.get(c["track"])
+        if not tr:
+            why = unplayable.get(c["track"], {}).get("reason", "not in the analyzed library")
+            errors.append(f"{cid}: track '{c['track']}' is not playable ({why})")
+            continue
+        if c["track_in"] < 0 or c["track_in"] + c["dur"] > tr["duration"] + 0.05:
+            errors.append(f"{cid}: source range {c['track_in']:.1f}+{c['dur']:.1f}s exceeds track duration {tr['duration']}s")
+        if c["at"] < -0.01 or c["at"] + c["dur"] > dur + 0.05:
+            errors.append(f"{cid}: film range {c['at']:.1f}-{c['at'] + c['dur']:.1f}s outside 0-{dur}s")
+        if c.get("fade_in", 0) + c.get("fade_out", 0) > c["dur"]:
+            errors.append(f"{cid}: fades longer than the cue")
+        loud = tr.get("loudness_db_per_s") or []
+        if loud:
+            thr = tr["median_loudness_db"] - 3
+
+            def lv(t):
+                return loud[int(max(0, min(len(loud) - 1, t)))]
+            if lv(c["track_in"] + 0.5) > thr and c.get("fade_in", 0) < 2:
+                warnings.append(f"{cid}: enters inside a loud passage ({lv(c['track_in'] + 0.5)} dB at "
+                                f"{c['track_in']:.1f}s) with fade_in {c.get('fade_in', 0)}s")
+            end = c["track_in"] + c["dur"]
+            if lv(end - 0.5) > thr and c.get("fade_out", 0) < 2 and end < tr["duration"] - 1:
+                warnings.append(f"{cid}: exits mid-passage ({lv(end - 0.5)} dB at {end:.1f}s) "
+                                f"with fade_out {c.get('fade_out', 0)}s")
+        spans = lyric_spans(c, tr)
+        clash = sorted((max(a, v0), min(b, v1)) for a, b, lg in spans if lg == speech
+                       for v0, v1 in voice if overlap(a, b, v0, v1) > 0)
+        same = sum(b - a for a, b in clash)
+        other = sum(overlap(a, b, v0, v1) for a, b, lg in spans if lg != speech for v0, v1 in voice)
+        if same > 1.0:
+            clearance = lyric_release(c.get("lyric_override"))
+            joined = []
+            for a, b in clash:
+                if joined and a <= joined[-1][1] + 0.05:
+                    joined[-1][1] = max(joined[-1][1], b)
+                else:
+                    joined.append([a, b])
+            where = ", ".join(f"{a:.1f}-{b:.1f}s" for a, b in joined)
+            if clearance:
+                released.append({"cue": cid, "track": c["track"], "seconds": round(same, 1),
+                                 "spans": [[round(a, 2), round(b, 2)] for a, b in joined],
+                                 "reason": clearance[0], "author_quote": clearance[1]})
+                info.append(f"{cid}: {same:.1f}s of sung '{speech}' lyrics under '{speech}' dialogue released "
+                            f"by the author ({where}): {clearance[0]}; author: \"{clearance[1]}\"")
+            else:
+                errors.append(f"{cid}: {same:.1f}s of sung '{speech}' lyrics under '{speech}' dialogue "
+                              f"(track {c['track']}); move the cue or use an instrumental passage"
+                              + ("; lyric_override needs both reason and author_quote"
+                                 if c.get("lyric_override") else ""))
+        elif other > 0.5:
+            warnings.append(f"{cid}: {other:.1f}s of singing/chant in another language under dialogue (track {c['track']})")
+        if tr.get("instrumental") is None and not tr.get("sung_lines"):
+            unknown = sum(overlap(c["at"], c["at"] + c["dur"], v0, v1) for v0, v1 in voice)
+            if unknown > 0.5:
+                warnings.append(f"{cid}: lyrics of '{c['track']}' are unknown (no .lrc) and it plays under "
+                                f"{unknown:.1f}s of dialogue; confirm it is instrumental or add lyrics")
+        on_text = sum(overlap(a, b, t0, t1) for a, b, _ in spans for t0, t1 in texts)
+        if on_text > 0.5:
+            if c.get("lyric_feature"):
+                info.append(f"{cid}: lyrics over text cards for {on_text:.1f}s, marked lyric_feature")
+            else:
+                warnings.append(f"{cid}: {on_text:.1f}s of lyrics compete with on-screen text; move it, or set "
+                                f"lyric_feature=true when the lyric IS the point and say why in the rationale")
+    step, n_steps = 0.1, int(round(dur * 10))
+    counts = [sum(1 for c in cues if c["at"] <= k * step < c["at"] + c["dur"]) for k in range(n_steps)]
+    if counts and max(counts) > 2:
+        errors.append(f"up to {max(counts)} cues sound at once (max 2)")
+    gaps, start = [], None
+    for k, n in enumerate(counts + [1]):
+        if n == 0 and start is None:
+            start = k * step
+        elif n and start is not None:
+            if k * step - start > max_gap:
+                gaps.append((round(start, 1), round(min(k * step, dur), 1)))
+            start = None
+    silences = sheet.get("silences", [])
+    for s in silences:
+        if not str(s.get("reason", "")).strip():
+            warnings.append(f"declared silence {s['t0']}-{s['t1']}s has no reason")
+        for c in cues:
+            late = overlap(c["at"], c["at"] + c["dur"], s["t0"] + silence_tail, s["t1"])
+            if late > 0.05:
+                errors.append(f"{c.get('id', '?')}: music plays {late:.1f}s inside declared silence "
+                              f"{s['t0']}-{s['t1']}s (only a {silence_tail}s tail may ring out)")
+    for g0, g1 in gaps:
+        declared = sum(overlap(g0, g1, s["t0"], s["t1"]) for s in silences)
+        if declared >= 0.5 * (g1 - g0):
+            info.append(f"deliberate silence {g0}-{g1}s")
+        else:
+            warnings.append(f"music-free span {g0}-{g1}s ({g1 - g0:.1f}s) is not declared in 'silences'; "
+                            f"cover it or declare why the film stays dry here")
+    ordered = sorted(cues, key=lambda c: c["at"])
+    for a, b in zip(ordered, ordered[1:]):
+        ov = a["at"] + a["dur"] - b["at"]
+        if ov > 0:
+            if ov < 1.0:
+                warnings.append(f"{a['id']}->{b['id']}: overlap {ov:.2f}s is too short for a cross-fade; "
+                                f"cross-fade >= 1 s or cut on a beat without overlap")
+            elif a.get("fade_out", 0) < 1.0 or b.get("fade_in", 0) < 1.0:
+                warnings.append(f"{a['id']}->{b['id']}: overlap {ov:.1f}s but fades are "
+                                f"{a.get('fade_out', 0)}/{b.get('fade_in', 0)}s")
+        if a["track"] == b["track"] and ov > -3:
+            info.append(f"{a['id']}->{b['id']}: same track back-to-back ({a['track']})")
+    intents = sorted(sheet.get("mix_intents", []), key=lambda r: r["t0"])
+    for r in intents:
+        span = f"mix intent {r.get('intent')} {r['t0']}-{r['t1']}s"
+        if r.get("intent") not in ("clear", "blend", "feature"):
+            errors.append(f"{span}: unknown intent (use clear, blend or feature)")
+        if not 0 <= r["t0"] < r["t1"] <= dur + 0.05:
+            errors.append(f"{span}: range outside the film or empty")
+        if r.get("intent") in ("blend", "feature") and not str(r.get("reason", "")).strip():
+            warnings.append(f"{span}: no reason; say why music should stay under the voice here")
+    for a, b in zip(intents, intents[1:]):
+        if b["t0"] < a["t1"]:
+            errors.append(f"mix intents overlap at {b['t0']}-{a['t1']}s")
+    if intents:
+        info.append("mix intents: " + ", ".join(f"{r.get('intent')} {r['t0']}-{r['t1']}s" for r in intents))
+    for run in card_runs(texts, card_run, card_max):
+        warnings.append(f"{len(run)} short text cards back to back {run[0][0]:.1f}-{run[-1][1]:.1f}s; give the "
+                        f"transition room (hold, music-led interlude, J/L-cut, longer dissolve)")
+    warnings += pacing(film, beat_min, beat_run, hold_min)
+    used = sorted({c["track"] for c in cues})
+    cover = sum(1 for n in counts if n) / max(1, len(counts)) * 100
+    info.append(f"distinct tracks {len(used)} of {len(playable)} playable in the library; "
+                f"{len(cues)} cues; music coverage {cover:.0f}%")
+    if unplayable:
+        info.append(f"unplayable library files (report them, do not drop silently): {sorted(unplayable)}")
+    if len(used) < min_tracks:
+        warnings.append(f"only {len(used)} distinct tracks; a narrative film normally mixes >= {min_tracks} "
+                        f"(state why a single score carries the whole film)")
+    return {"errors": errors, "warnings": warnings, "info": info, "released": released}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--cues", required=True, help="cue sheet JSON")
+    ap.add_argument("--tracks", required=True, help="tracks.json from bgm_tracks.py")
+    ap.add_argument("--film", required=True, help="film.json with duration, voice_spans and text_spans")
+    ap.add_argument("--min-tracks", type=int, default=3, help="warn below this many distinct tracks (default 3)")
+    ap.add_argument("--preset", choices=sorted(PRESETS), default="default",
+                    help="narrative: vlog/travel/documentary score that runs continuously (--max-gap 2)")
+    ap.add_argument("--max-gap", type=float,
+                    help="undeclared music-free span limit, s (default 6; 2 with --preset narrative)")
+    ap.add_argument("--card-run", type=int, default=3, help="warn on this many short cards in a row (default 3)")
+    ap.add_argument("--card-max", type=float, default=5.0, help="a text card this short counts, s (default 5)")
+    ap.add_argument("--silence-tail", type=float, default=2.0, help="music allowed into a declared silence, s (default 2)")
+    ap.add_argument("--beat-min", type=float, default=4.0, help="a beat shorter than this counts as short, s (default 4)")
+    ap.add_argument("--beat-run", type=int, default=3, help="warn on this many short beats in a row (default 3)")
+    ap.add_argument("--hold-min", type=float, default=1.0, help="picture needed after a beat's last word, s (default 1)")
+    ap.add_argument("--json", dest="json_out", help="write the report as JSON")
+    args = ap.parse_args()
+    load = lambda p: json.loads(Path(p).read_text(encoding="utf-8"))  # noqa: E731
+    max_gap = args.max_gap if args.max_gap is not None else PRESETS[args.preset]["max_gap"]
+    out = validate(load(args.cues), load(args.tracks), load(args.film), args.min_tracks, max_gap,
+                   args.card_run, args.card_max, args.silence_tail, args.beat_min, args.beat_run, args.hold_min)
+    for key in ("errors", "warnings", "info"):
+        for m in out[key]:
+            print(f"{key[:-1].upper() if key != 'info' else 'INFO':7s} {m}")
+    print(f"RESULT {'FAIL' if out['errors'] else 'PASS'} ({len(out['errors'])} errors, {len(out['warnings'])} warnings)")
+    if args.json_out:
+        Path(args.json_out).write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    return 1 if out["errors"] else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

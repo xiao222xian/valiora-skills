@@ -1,0 +1,12 @@
+schema: lovstudio/pricing-card/v1
+version: "0.33.0"
+model: paid
+currency: CNY
+list_price_cny: 99
+list_price_credits: 1394
+credit_rule: "官网换算规则 credits = round(人民币 / 7.1 × 100)"
+value_anchor: "一次长录屏到成片任务保守可省 2–8 小时的剪辑、字幕回灌、封面返工和交付排错。"
+basis: "1,394 Credits 是完整本地媒体制作工作流的一次性价格，用于验证付费转化；它不是定制剪辑、托管执行或成本回收价。（2026-09-29 读自官网详情页）"
+boundary: "覆盖素材扫描、剪辑规划、字幕审校、FFmpeg 渲染、原声与 BGM 混音、各槽位正式封面和交付质检；云端渲染、版权素材、账号和代发布按实际条件处理。"
+review_trigger: "首发 30 天、100 次付费兑换、版本变化，或平台交付规范与单买家支持成本明显变化时复评。"
+confidence: internal

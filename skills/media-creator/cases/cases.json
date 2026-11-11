@@ -1,0 +1,385 @@
+[
+  {
+    "type": "case",
+    "title": "我跑通了视频号自动发布工作流：从长录屏到 V4 成片",
+    "description": "真实用户将一段约 17 分钟的工作流录屏整理为视频号成片，重点修复了上传弹窗过长、最终成果段原声被删和 BGM 抢占注意力的问题，并完成线上回读。",
+    "input": {
+      "items": [
+        "ego自动发公众号视频.mp4",
+        "Global Technology Background.mp3",
+        "视频号发布过程中的最终结果播放片段",
+        "原始录屏中的上传弹窗、操作证据和发布回读信息"
+      ],
+      "source_profile": {
+        "duration_seconds": 1065.877,
+        "resolution": "1660x1080",
+        "frame_rate": 60,
+        "audio": "mono AAC"
+      }
+    },
+    "prompt": "把这段录屏剪成 16:9 视频号成片，标题为《我跑通了视频号自动发布工作流》；上传弹窗弱化，保留最终视频连续播放和原声，BGM 只做氛围，成果段让原声成为主角，并给出可回读的质检与发布报告。",
+    "output": {
+      "items": [
+        "我跑通了视频号自动发布工作流-16x9-v4.mp4",
+        "质检与发布报告-v4.md",
+        "1920x1080、30fps、H.264、AAC 48kHz 双声道",
+        "64.9 秒，综合响度 -15.6 LUFS-I，True Peak -1.2 dBFS",
+        "视频号对象 ID 已回读，status=1，isPostProcessSuccess=true，isPostHasPosted=true，最终状态 published"
+      ],
+      "editorial_changes": [
+        "上传弹窗从约 11 秒压缩到 2.4 秒",
+        "恢复最终视频连续播放和原声",
+        "在高潮段降低 BGM，进入成果段后隐藏解释性字幕与顶栏"
+      ],
+      "evidence": {
+        "sha256": "605c6fa9a8a763bf3ea41527f6be45e776d373ddd532bb365b8b2114870714ae",
+        "publication_date": "2026-08-12",
+        "publication_time": "18:52"
+      }
+    }
+  },
+  {
+    "type": "case",
+    "title": "EP.03：先交可编辑字幕的 MKV，再等作者批准",
+    "description": "第三期原本已经导出硬字幕 MP4；作者明确要求第一遍只交可在 Subtitle Edit 中编辑的 MKV，随后又要求校准章节语义，并在每章正文前加入黑幕标题卡。流程重新渲染无旁白硬字幕画面，把 SRT 同时作为默认 SubRip 轨和外置文件交付，并阻断最终封装与发布。",
+    "input": {
+      "items": [
+        "约 13 分钟原始录屏",
+        "已完成的 EDL、音频母带、系列覆盖层和 209 条成片时间轴字幕",
+        "作者偏好：字幕批准前只生成 MKV，不生成平台 MP4"
+      ],
+      "source_profile": {
+        "duration_seconds": 798.144,
+        "resolution": "1660x1080",
+        "frame_rate": 60,
+        "audio": "mono AAC"
+      }
+    },
+    "prompt": "第一遍只生成内嵌 SRT 的 MKV，方便我导入 Subtitle Edit 编辑；字幕确认后再封装最终成片，并根据平台支持决定是否派生 MP4。",
+    "output": {
+      "items": [
+        "review-v0.1.mkv：H.264、AAC 48kHz 双声道、默认中文 SubRip 轨",
+        "review-v0.1.srt：UTF-8，209 条，可修改文字、断句和时间码",
+        "subtitle-review.json：内嵌字幕回抽一致性、流信息与双文件 SHA-256",
+        "六张 1.20 秒黑幕标题卡：背景、录音恢复、现场验证、自定义 Prompt、产品取舍、最终判断",
+        "状态 review-ready / awaiting-review / blocked-on-subtitle-approval"
+      ],
+      "editorial_changes": [
+        "重新渲染无旁白硬字幕画面，避免软硬字幕叠加",
+        "用实际口播与画面证据重命名六幕，并把标题卡吸附到句界/EDL 边界",
+        "标题卡期间暂停人声、延续低声配乐与轻转场声，统一累计后移字幕和全部时间码",
+        "保留片名卡、章节进度条、身份块和关键原声",
+        "把旧硬字幕 MP4 降级为 provisional，不进入发布交接"
+      ],
+      "evidence": {
+        "duration_seconds": 485.871,
+        "frame_count": 29151,
+        "cue_count": 209,
+        "integrated_lufs_i": -16.06,
+        "true_peak_dbfs": -1.8,
+        "chapter_card_count": 6,
+        "chapter_card_duration_seconds": 1.2,
+        "chapter_card_cue_crossings": 0,
+        "review_mkv_sha256": "ec48d5f4513ccfb7bcc7104abe1de00e9f6c630547d7c7c49c4a2aacb9467862",
+        "external_srt_sha256": "7d54fb4ede731eb990ae4e36dd7d002c64fbb8defc60a92d09f0585cda912c02"
+      }
+    }
+  },
+  {
+    "id": "screenstudio-remotion-skill-limits-ep01",
+    "type": "case",
+    "title": "《手工川 AI 实战》EP.01：从 Screen Studio 源工程到双比例 Remotion 成片",
+    "description": "真实项目直接读取 Screen Studio 源工程的独立屏幕、摄像头、麦克风、系统声与事件轨，经过多轮审片修复完整句截断、口误重说、静音钩子、摄像头断层、动画遮挡、章节导航和 BGM 卡顿，最终交付横竖双版、官网产品卡、片尾资源页和平台封面，并公开发布可回看的 B 站版本。",
+    "input": {
+      "items": [
+        "一份 565.632 秒的 .screenstudio 源工程",
+        "独立 display / webcam / microphone / system-audio 通道",
+        "鼠标、点击、快捷键和自动缩放事件",
+        "主题：高阶技巧——如何突破 Skill 限制",
+        "平台目标：横版优先，锁定后同步派生十分钟内的竖版"
+      ],
+      "source_profile": {
+        "duration_seconds": 565.632,
+        "display_resolution": "3024x1964",
+        "webcam_resolution": "1920x1080",
+        "audio_sample_rate": 48000,
+        "source_type": "Screen Studio project"
+      }
+    },
+    "prompt": "直接基于 Screen Studio 源工程，结合 Remotion，制作《手工川 AI 实战》第一期「高阶技巧：如何突破 Skill 限制」。不要先压成扁平 MP4；利用源工程独立控制摄像头、鼠标、快捷键、背景与音乐，让摄像头可按内容切换右下角、侧栏或全屏 B-roll。保留自动剔除口水词、章节划分与进度条、开头高光和自动 BGM，并用 Remotion 加入动画、过渡、可视化解释、专业特效字幕与封面；知识传播风格的配乐可优先试听 Screen Studio 内置 lo-fi「Bright Lounge」。先完成适合 B 站等平台的横版；若成片不超过 10 分钟，再输出视频号竖版。",
+    "output": {
+      "items": [
+        "横版成片：1920x1080、30fps、H.264 + AAC、358.549 秒",
+        "竖版成片：1080x1920、30fps，并按视频号实际容器预留顶部安全区",
+        "243 条审校字幕、2 张官网产品卡、1 张 7.2 秒片尾资源页",
+        "Remotion Studio 双 Composition、双比例封面与可回读质检报告",
+        "B 站公开成片：https://www.bilibili.com/video/BV1Zx8Z6vEgj/"
+      ],
+      "editorial_changes": [
+        "39 个样本级 cleanup range 删除 36.44 秒口水词、失败起句和错误修正",
+        "开场由两个槽点和一个完整结果证据组成，不显示内部高光标签，也不保留表情整理",
+        "章节卡只显示章号和标题，顶部进度导航任意时刻显示全部五章",
+        "保持摄像头连续，并在用户恢复操作屏幕时结束解释动画",
+        "为 Codeex 与 Yoda 制作官网信息卡，片尾列出资源和 BGM 来源",
+        "画面与对白锁定后最后生成单条连续 BGM，Remotion 根层只挂载一次",
+        "封面只保留“如何突破 Skill 限制”主标题与系列标识，使用异字号混排并复用已确认职业照"
+      ],
+      "quality_metrics": {
+        "source_playback_rate": 1.12,
+        "cleanup_range_count": 39,
+        "cleanup_removed_seconds": 36.44,
+        "clip_count": 78,
+        "caption_count": 243,
+        "full_asr_segment_count": 218,
+        "full_asr_filler_gate": "no standalone 啊 / 呃 / 嗯 and no Agent Ski restart",
+        "bgm_internal_silence_gate": "no silence >=250ms at -55dB",
+        "studio_playback_fps": 30.08,
+        "studio_fresh_console": "0 errors / 0 warnings",
+        "bilibili_video_sha256": "2f5d96d2fa84e91d310b910eb940fa1ed11471ffd3d385cef0054a3ea06bdc93"
+      },
+      "publication": {
+        "platform": "Bilibili",
+        "url": "https://www.bilibili.com/video/BV1Zx8Z6vEgj/",
+        "bvid": "BV1Zx8Z6vEgj",
+        "title": "如何突破 Skill 限制",
+        "collection": "手工川 AI 实战",
+        "state": "public"
+      }
+    },
+    "evidence": {
+      "acceptance": "user-confirmed",
+      "verified_at": "2026-08-27",
+      "method": "用户在最终审片中明确评价“感觉 95% 没问题了，行，这个版本的迭代先到这”；随后对平台文件执行 SHA-256 与 FFprobe 回读，并通过 Bilibili 公开接口确认稿件标题、公开状态、1920x1080 画幅和“手工川 AI 实战”合集归属。",
+      "privacy": "已移除本地绝对路径、Screen Studio 工程内容、原始转写全文、账号凭据和发布会话信息；只保留用户本人公开发布的 B 站链接、公开封面与不可逆媒体摘要。"
+    },
+    "cover": "https://i1.hdslb.com/bfs/archive/ff07bff235da934be1f30f940527ea67ed11f361.jpg"
+  },
+  {
+    "type": "case",
+    "title": "整场交流独立切片：通用CLI的30.8秒实片回归",
+    "description": "用户认可整场课程拆成独立切片的流畅效果，要求沉淀为可复用Skill；保持已发布文件不变，用一个既有片段验证新工具。",
+    "input": {
+      "items": [
+        "用户已认可的30.8秒课程片段主体",
+        "既有审校字幕",
+        "已授权配乐与本地字体"
+      ],
+      "source_profile": {
+        "duration_seconds": 30.8,
+        "resolution": "1920x1080",
+        "frame_rate": 25
+      }
+    },
+    "prompt": "优化现有媒体预处理与创作Skill，固化独立切片、流畅剪口和精包装流程。",
+    "output": {
+      "items": [
+        "新的1080x1920 H.264/AAC MP4",
+        "1080x1440及1440x1080封面",
+        "词级ASR、审校SRT、哈希锁定与直接MP4交付清单"
+      ],
+      "evidence": {
+        "date": "2026-09-07",
+        "skill_version": "0.14.0",
+        "video_sha256": "384691eb271a379a3f062ab9c049308010438325228ac559d10c2504977240b7",
+        "full_decode": "passed",
+        "lufs_i": -16.78,
+        "true_peak_dbtp": -5.88,
+        "audio_alignment_windows": [
+          {
+            "seconds": 0,
+            "lag_ms": 0.0,
+            "correlation": 0.9919437879358884
+          },
+          {
+            "seconds": 9.24,
+            "lag_ms": 0.0,
+            "correlation": 0.9860757169685401
+          },
+          {
+            "seconds": 20.02,
+            "lag_ms": 0.0,
+            "correlation": 0.9837671458083367
+          },
+          {
+            "seconds": 24.8,
+            "lag_ms": 0.0,
+            "correlation": 0.9917779004541275
+          }
+        ],
+        "visual_review": "actual encoded head/middle/tail and both covers inspected by agent",
+        "human_auditory_review": false,
+        "publication": "not-published; local regression only",
+        "scope": "This run tests the reusable CLI on 30.8 seconds; the earlier 48-clip batch is context, not claimed as produced again by this CLI."
+      }
+    }
+  },
+  {
+    "id": "kailash-kora-travel-vlog",
+    "type": "case",
+    "title": "《我所看见的冈仁波齐》：把全景相机和手机素材剪成 13 分钟转山 vlog，竖横两版",
+    "description": "作者给出全景相机与手机拍摄的转山素材、已发表的转山文章和 2021 年骑行时的旧素材，要一条大片风格的转山 vlog。经 v0.1–v0.8 八版审片，纠正了字卡照搬文章独白、配乐为口播断档、手机素材长期未入片、360 对话镜头给错对象等问题；后期改为作者在线、在 Remotion Studio 里逐轮快速审。片名起初沿用 brief 里的主题句，后来按作者要求改为与已发表文章一致的《我所看见的冈仁波齐》。终版 13 分 47 秒，先交视频号竖版，再从同一时间线逐镜头重新取景派生 B 站横版。",
+    "input": {
+      "items": [
+        "双鱼眼全景相机拍摄的转山素材",
+        "手机视频与手机照片",
+        "作者已发表的冈仁波齐转山文章",
+        "2021 年骑行时作者在社交平台发布的照片，以及一段旧视频作品（经作者同意取用）",
+        "作者提供的候选配乐",
+        "品牌水印与 logo"
+      ],
+      "source_profile": {
+        "source_type": "360 dual-fisheye footage + phone video and photos + published article",
+        "panoramic_segments": 77,
+        "panoramic_size_gb": 75.9,
+        "panoramic_minutes": 147.8,
+        "phone_videos": 22,
+        "phone_photos": 625
+      },
+      "material_funnel": [
+        {
+          "material": "全景视频",
+          "source": "原始 77 段、75.9 GB、约 147.8 分钟",
+          "reviewed": "按天逐段看、逐镜头定取景",
+          "used": "60 个镜头，出自其中 35 段",
+          "film_seconds": 587.7
+        },
+        {
+          "material": "手机视频",
+          "source": "原始 22 段、约 9.9 分钟",
+          "reviewed": "全部看过",
+          "used": "10 段",
+          "film_seconds": 57.4
+        },
+        {
+          "material": "手机照片",
+          "source": "原始 625 张（另有 113 张截图未用）",
+          "reviewed": "623 张入索引、37 张缩略图墙逐批审、82 张复核保留、21 张剔除",
+          "used": "34 张",
+          "film_seconds": null
+        },
+        {
+          "material": "2021 骑行社交平台照片",
+          "source": "原始 527 张",
+          "reviewed": "按行程与原文配对",
+          "used": "10 张",
+          "film_seconds": null
+        },
+        {
+          "material": "2021 旧视频作品",
+          "source": "1 段（经作者同意取用）",
+          "reviewed": null,
+          "used": "1 段（静音）",
+          "film_seconds": 9.8
+        },
+        {
+          "material": "其他静帧",
+          "source": "日照金山照片、星空标注图各 1 张",
+          "reviewed": null,
+          "used": "2 张",
+          "film_seconds": null
+        },
+        {
+          "material": "照片类静帧合计",
+          "source": "手机照片 34 + 2021 骑行照片 10 + 其他静帧 2",
+          "reviewed": null,
+          "used": "46 张",
+          "film_seconds": 161.5
+        },
+        {
+          "material": "口播与现场对话",
+          "source": "73 条候选、剪出片段约 850.8 秒",
+          "reviewed": "转写并逐句对口型",
+          "used": "49 条，字幕 150 条",
+          "film_seconds": null
+        },
+        {
+          "material": "配乐",
+          "source": "23 首可播放候选",
+          "reviewed": "按叙事分段试配",
+          "used": "10 首、11 段 cue，全片连续",
+          "film_seconds": null
+        },
+        {
+          "material": "版本",
+          "source": "v0.1–v0.8 共 8 版",
+          "reviewed": "前 6 版出审阅视频，v0.7、v0.8 在 Studio 审",
+          "used": "v0.8 定稿",
+          "film_seconds": null
+        },
+        {
+          "material": "横版派生",
+          "source": "71 个镜头 + 46 张静帧",
+          "reviewed": "两轮取景、两轮独立复核",
+          "used": "全部重新取景，横版另做 3 处隐私处理",
+          "film_seconds": null
+        },
+        {
+          "material": "片中时长合计",
+          "source": "587.7 + 57.4 + 9.8 + 161.5 + 黑场 10.6",
+          "reviewed": null,
+          "used": "827 秒",
+          "film_seconds": 827
+        }
+      ]
+    },
+    "prompt": "基于我这次冈仁波齐转山的记录与以下素材，创作一条转山 Vlog：大片风格，展现自然风光、人文情节与内心复杂叙事，有深度有广度，时长自由，面向创业者、奋斗向，主题《我为什么一定要去冈仁波齐》。",
+    "output": {
+      "items": [
+        "视频号竖版：1080×1920、30fps、H.264 High、总码率约 8.7 Mbps（视频 8.36 Mbps）、AAC 48kHz、13:47（827.05 秒），SHA-256 69d06577363e45a45d987b9836d430b27dc5d4701305850cd8f5cf138309b605",
+        "B 站横版：1920×1080、30fps、H.264、总码率约 20.1 Mbps、与竖版同一条混音，SHA-256 cd830063539bb6a578023d20dd64790564766f5bc07a8e4c33fdfdf8007c8329",
+        "母带 −16.0 LUFS-I、−3.0 dBTP",
+        "封面：同一视觉派生 3:4、4:3、16:9 三个比例",
+        "烧录字幕、按真实拍摄时间走的 REC 时间水印、品牌片头与片尾"
+      ],
+      "editorial_changes": [
+        "多方案长工作流（多个剪辑 agent 加评审，一轮 3 小时以上）改为作者在线时由主 agent 直剪，在 Remotion Studio 逐轮快速审",
+        "字卡只交代日期、地点、海拔与体征，文章里的内心独白不再搬成字幕，字卡由 45 张减到 8 张",
+        "开场由黑屏提问加鼓点改为茶馆里新认识的人的轻松对话；黑场转场只留片尾 1 处，全片按真实时间顺序推进",
+        "补入手机视频与照片，回忆段用作者 2021 年骑行时发布的 10 张照片和一段旧视频，并加年份角标",
+        "配乐改为全片连续：10 首 11 段 cue，一首放到下一首接手，口播只压低不停歌，作者点名的曲目按其建议位置落位",
+        "逐设备校准相机时钟后，加入按真实拍摄时间走的 REC 时间水印",
+        "片名由 brief 里的主题句改为与已发表文章一致的《我所看见的冈仁波齐》",
+        "B 站横版不裁竖版：每个 360 镜头按新画幅重新取景，两轮取景、两轮独立复核新露出的区域",
+        "B 站版发布前的隐私扫描发现车牌、收款码和遗照墙，在横版逐帧跟踪打码或退回已批准画面居中"
+      ],
+      "quality_metrics": {
+        "duration_seconds": 827.05,
+        "frame_count": 24810,
+        "shots": 71,
+        "shots_breakdown": "全景 60、手机 10、旧作 1",
+        "stills": 46,
+        "text_cards": 8,
+        "subtitle_cues": 150,
+        "chapters": "3（00:17 出发 / 03:44 第一天 / 09:03 第二天）",
+        "music": "10 首、11 段 cue，全片连续，最长无乐 0.2 秒",
+        "intelligibility": "149 句配对，混音均值 CER 0.2447，纯人声底线 0.2812，通过；逐句差值只用来排抽听顺序",
+        "integrated_lufs_i": -16.0,
+        "true_peak_dbtp": -3.0,
+        "horizontal_review": "71 个镜头 + 46 张静帧：两轮取景、两轮独立复核",
+        "review_rounds": "v0.1–v0.8；前 6 版出审阅视频，v0.7、v0.8 在 Studio 审"
+      },
+      "publication": [
+        {
+          "platform": "WeChat Channels",
+          "title": "我所看见的冈仁波齐",
+          "submitted_at": "2026-09-27 00:55",
+          "state": "platform_pending",
+          "note": "内容列表回读状态为“原创审核中”，尚未回读到已发布状态，因此不记为 published"
+        },
+        {
+          "platform": "Bilibili",
+          "bvid": "BV1Ycah6RESF",
+          "submitted_at": "2026-09-27",
+          "state": "publish_failed",
+          "note": "2026-09-27 晚回读为“已退回”，平台理由原文：“您的视频【P1内容全程】中含有暴力血腥，或危险行为内容”；片中没有相关画面，作者已提交申诉，结果待回读，不是 published"
+        }
+      ]
+    },
+    "evidence": {
+      "acceptance": "user-confirmed",
+      "verified_at": "2026-09-27",
+      "method": "作者在 Remotion Studio 逐轮审片后说“感觉可以发布了”，B 站终稿确认时回复“发”；随后对两份平台文件做 SHA-256 与 FFprobe 回读、ebur128 复测响度与真峰值、完整解码；B 站通过创作者接口回读标题、简介、标签、分区与双封面，视频号回读内容列表。可懂度为逐条字幕切片转写、与纯人声底线配对比较，测于加片尾 logo 卡之前的 v0.8 混音，之后只改了片尾，对白未变。两个平台都没有公开发布回读。",
+      "privacy": "已去除本地路径、原始素材文件名、原始转写、账号与会话信息等私人信息；只保留作者本人公开发布的平台条目与不可逆媒体摘要。提示词按作者原意整理，删去了本地路径。"
+    }
+  }
+]

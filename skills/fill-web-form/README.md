@@ -1,59 +1,6 @@
-# 网页填表助手 · Web Form Assistant
+# 网页填表助手
 
-![Version](https://img.shields.io/badge/version-1.2.2-CC785C)
+Valiora Skills · 版本 `1.2.2`
 
-Fill web forms by deep-searching your local knowledge base. Give it a URL, get back a ready-to-paste markdown document.
-
-Part of [skill-publisher/skills](https://example.com/skills/skills) — by [example.com](https://example.com)
-
-## Install
-
-```bash
-npx skills add fill-web-form -g -y
-```
-
-No external dependencies — uses Claude's built-in tools only.
-
-## How It Works
-
-```
- ┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
- │  Web Form    │     │  Knowledge Base   │     │  Output Doc      │
- │  (URL)       │     │  (local files)    │     │  (markdown)      │
- │              │     │                   │     │                  │
- │  ┌────────┐  │     │  profile/         │     │  ## 1. 姓名      │
- │  │ 姓名   │──┼──┬──│  posts/           │──┬──│  品牌方          │
- │  │ 简介   │  │  │  │  projects/        │  │  │  ## 2. 简介      │
- │  │ 案例   │  │  │  │  articles/        │  │  │  <合成内容>      │
- │  │ 成效   │  │  │  │  CLAUDE.md        │  │  │  ## 3. 案例      │
- │  └────────┘  │  │  │  memory/          │  │  │  <合成内容>      │
- └──────────────┘  │  └──────────────────┘  │  └──────────────────┘
-                   │                        │
-              WebFetch                Agent(Explore)
-              提取字段                 深度检索匹配
-```
-
-## Usage
-
-```
-/fill-web-form https://example.com/apply?formId=123
-```
-
-Claude will:
-1. Fetch the form and extract all fields
-2. Deep-search your knowledge base for matching info
-3. Generate a markdown document with all fields pre-filled
-4. Flag fields that need manual input (uploads, private data)
-
-## Supported Form Types
-
-| Type | Examples |
-|------|----------|
-| Conference applications | GIAC, QCon, ArchSummit speaker submissions |
-| Event registrations | Hackathon signups, meetup RSVPs |
-| Profile forms | Platform bios, author profiles |
-| Grant/funding applications | Accelerator apps, grant proposals |
-
-## License
-
-MIT
+- [使用说明](SKILL.md)
+- [返回 Valiora Skills 目录](../../CATALOG.md)

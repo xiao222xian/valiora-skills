@@ -1,41 +1,6 @@
-# GitHub 整理师 · GitHub Organizer
+# GitHub 整理师
 
-![Version](https://img.shields.io/badge/version-0.2.1-CC785C)
+Valiora Skills · 版本 `0.2.1`
 
-Interactive GitHub repo triage — clean up issues, PRs, stale branches, and orphan labels in one pass.
-
-## Install
-
-```bash
-npx skills add skill-publisher/skills --skill lov-gh-tidy -y -g
-```
-
-## Prerequisites
-
-- `gh` CLI installed and authenticated
-- Current directory is a GitHub repo
-
-## Usage
-
-```
-/lov-gh-tidy
-```
-
-The skill will:
-
-1. **Scan** — List all open issues, PRs, unmerged remote branches, and labels
-2. **Summarize** — Show a table with age, status, and analysis for each item
-3. **Triage** — Ask you how to handle each item (close / merge / delete / keep)
-4. **Execute** — Run all actions via `gh` CLI
-5. **Report** — Show what was done
-
-## Example Output
-
-```
-GitHub Tidy Report
-==================
-Issues:   2 closed, 1 kept
-PRs:      1 merged, 0 closed
-Branches: 3 deleted
-Labels:   0 deleted
-```
+- [使用说明](SKILL.md)
+- [返回 Valiora Skills 目录](../../CATALOG.md)

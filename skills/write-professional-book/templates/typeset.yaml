@@ -1,0 +1,81 @@
+# 排版配置：复制到书根目录，按本书填写。scripts/ 下的 build-pdf.py、build-docx.py、
+# table-widths.py、pdfcheck.py 共用这一份。路径都相对书根目录。
+# 除 title 外各项都可省略，省略时用注释里的默认值。
+
+title: 书名
+subtitle: 副书名                      # 可省略
+author: 某某 著                       # 扉页署名，原样输出（“著”“编著”“主编”写在这里）
+date: 2026 年 10 月
+keywords: [关键词一, 关键词二]          # 写进 DOCX 文档属性
+cover: assets/attachments/cover.jpg   # 封面图，铺满第一页；省略则没有封面页
+
+# 前置部分（版权说明、前言等），按顺序排在目录之后；默认 src/00-*.md
+frontmatter:
+  - src/00-frontmatter.md
+
+# 分编的书写 parts；每编有编扉页（进目录、无页码）。
+# 章：数字 n 指 src/chapter-nn/（README.md 后接 section-*.md），也可写目录或 .md 路径。
+parts:
+  - label: 第一编
+    title: 编名
+    image: assets/attachments/part-1.jpg   # 编扉页插图，可省略
+    note: 本编包含第 1—3 章                # 编扉页小字，可省略
+    chapters: [1, 2, 3]
+  - label: 第二编
+    title: 编名
+    chapters: [4, 5, 6]
+
+# 不分编的书删掉 parts，改写 chapters；两项都省略时按 src/chapter-*/ 的顺序收全部章
+# chapters: [1, 2, 3, 4, 5]
+
+# 附录：默认收 src/appendix-*.md；写了 title 才排附录扉页
+appendix:
+  label: 附　录
+  title: 可以直接拿去用的几份材料
+  note: 制度清单、评估表、术语表
+  # files: [src/appendix-a.md, src/appendix-b.md]
+
+references: src/references.md          # 参考文献，排在最后，小字左对齐
+
+page:                                  # 单位 mm；默认 185×260（16 开）
+  width: 185
+  height: 260
+  top: 22
+  bottom: 24
+  inner: 20
+  outer: 18
+  fontsize: 11                         # 正文字号 pt，只支持 10、11、12；表格自动小一号
+  linestretch: 1.28
+
+fonts:                                 # 默认 macOS 自带字体
+  cjk_main: Songti SC
+  cjk_sans: PingFang SC
+  cjk_mono: PingFang SC
+  main: Times New Roman
+  sans: Helvetica Neue
+  mono: Menlo
+  hangul_main: Apple SD Gothic Neo     # 正文出现韩文时的回退字体
+  hangul_sans: Apple SD Gothic Neo
+  symbol: Apple Symbols                # ☐ ☑ ★ ○ 等符号的回退字体
+  symbol2: Arial Unicode MS            # ✓ ◆ 的回退字体
+
+colors:                                # 十六进制，不带 #
+  accent: 8A3324                       # 章题装饰线、目录中的编名、链接
+  ink: 1E1416                          # 标题文字
+
+pdf:
+  extra_header:                        # 本书专用的 LaTeX 补丁文件（如额外的 \hyphenation、断行宏），可省略
+  backmatter:                          # 排在书末的 LaTeX 文件（如书末宣传页），可省略
+  ragged_sections: [延伸阅读]           # 这些二级节改为小字左对齐（多含不可断的西文长串）
+  squeeze_anchor: 延伸阅读              # 章末短页回收时缩短哪一节的起始页；找不到时取本章最后一个二级标题
+  nofloat_tables: []                   # 不浮动的表（按表题前缀，如 "表 D-"），用于必须紧跟说明段的表
+  keep_after_table: []                 # 表后紧跟、不能与表尾分页的加粗行（按前缀，如 "本维度小计"）
+  nobreak_terms: []                    # 不可断开的西文术语或型号（如 "DeepSeek-R1"）
+  plus_terms: [人工智能, 互联网]        # “人工智能+”这类词：“+”紧贴前字、不断开，书签里保留“+”
+  float_max:                           # 估算高度不超过此行数的有题表改为浮动体；默认按版心高度推算（16 开约 30）
+
+docx:
+  body_font: 宋体
+  heading_font: 黑体
+  quote_font: 楷体
+  latin_font: Times New Roman

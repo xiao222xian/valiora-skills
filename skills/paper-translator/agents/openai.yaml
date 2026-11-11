@@ -1,0 +1,4 @@
+interface:
+  display_name: "论文翻译官"
+  short_description: "Translate academic PDFs into Chinese matched-page PDFs."
+  default_prompt: "Use $lov-paper-translator to translate an English academic PDF into a Chinese PDF with matching pages."

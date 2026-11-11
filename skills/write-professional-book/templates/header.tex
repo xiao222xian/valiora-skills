@@ -1,0 +1,206 @@
+% 写书 Skill 的 PDF 版式模板，由 scripts/build-pdf.py 作为 pandoc --include-in-header 传入。
+% 下面的 BOOK-SETTINGS 一行会被替换为 typeset.yaml 生成的配色、封面与字体回退；
+% 本书专用的补丁写进 typeset.yaml 的 pdf.extra_header，不要改这份模板。
+\usepackage{fancyhdr}
+\usepackage{eso-pic}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{newunicodechar}
+
+%% BOOK-SETTINGS %%
+
+\newif\ifbookcoverpage
+\bookcoverpagefalse
+
+\fancypagestyle{fancy}{%
+  \fancyhf{}
+  \fancyfoot[R]{\color{bookfootergray}\fontsize{8}{10}\selectfont\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[R]{\color{bookfootergray}\fontsize{8}{10}\selectfont\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\pagestyle{fancy}
+
+% 扉页（\maketitle）按封面页处理
+\let\bookoldmaketitle\maketitle
+\renewcommand{\maketitle}{\bookcoverpagetrue\bookoldmaketitle\bookcoverpagefalse}
+
+% 章标题在“：”处换行；没有冒号时在第一个全角空格处换行（如“前言　…”）；
+% “附录 A　…”在全角空格处换行
+\ExplSyntaxOn
+\NewDocumentCommand\booksplittitle{m}
+  {
+    \tl_set:Nn \l_tmpa_tl {#1}
+    \tl_if_in:NnT \l_tmpa_tl {附录}
+      { \tl_replace_once:Nnn \l_tmpa_tl {　} {\\} }
+    \tl_if_in:NnTF \l_tmpa_tl {：}
+      { \tl_replace_once:Nnn \l_tmpa_tl {：} {：\\} }
+      { \tl_if_in:NnF \l_tmpa_tl {附录} { \tl_replace_once:Nnn \l_tmpa_tl {　} {\\} } }
+    \tl_use:N \l_tmpa_tl
+  }
+\ExplSyntaxOff
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{bookink}\raggedright}
+  {\color{bookaccent}\normalsize\mdseries\MakeUppercase{\chaptertitlename\ \thechapter}}
+  {14pt}{\booksplittitle}
+  [\vspace{6pt}{\color{bookaccent}\rule{72pt}{2pt}}]
+\titlespacing*{\chapter}{0pt}{18pt}{40pt}
+
+% 节标题超过一行时在“：”后换行，避免末行只剩一两个字
+\ExplSyntaxOn
+\NewDocumentCommand\booksplitsection{m}
+  {
+    \tl_set:Nn \l_tmpa_tl {#1}
+    \hbox_set:Nn \l_tmpa_box {#1}
+    \dim_compare:nNnT { \box_wd:N \l_tmpa_box } > { \linewidth }
+      { \tl_replace_once:Nnn \l_tmpa_tl {：} {：\\} }
+    \tl_use:N \l_tmpa_tl
+  }
+\ExplSyntaxOff
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{bookink}\raggedright}{\thesection}{0.8em}{\booksplitsection}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{bookink}\raggedright}{\thesubsection}{0.8em}{\booksplitsection}
+
+% 图片默认居中且不超过版心
+\setkeys{Gin}{width=\linewidth,height=0.9\textheight,keepaspectratio}
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+
+% 表格行距
+\renewcommand{\arraystretch}{1.28}
+
+% 引用块样式
+\usepackage{mdframed}
+\renewenvironment{quote}
+  {\begin{mdframed}[linewidth=0pt,leftline=true,linecolor=bookaccent,
+     innerleftmargin=12pt,innerrightmargin=6pt,innertopmargin=8pt,
+     innerbottommargin=8pt,backgroundcolor=black!3,skipabove=10pt,skipbelow=10pt]%
+   \setlength{\parskip}{4pt}\small}
+  {\end{mdframed}}
+
+% 正文字体缺字的符号指定回退字体（字体名见 BOOK-SETTINGS）
+\newunicodechar{☐}{{\booksymbolfont ☐}}
+\newunicodechar{☑}{{\booksymbolfont ☑}}
+\newunicodechar{☒}{{\booksymbolfont ☒}}
+\newunicodechar{★}{{\booksymbolfont ★}}
+\newunicodechar{○}{{\booksymbolfont ○}}
+\newunicodechar{✓}{{\bookcheckfont ✓}}
+\newunicodechar{◆}{{\bookcheckfont ◆}}
+\newunicodechar{Ⅰ}{{\bookromanfont Ⅰ}}
+\newunicodechar{Ⅱ}{{\bookromanfont Ⅱ}}
+\newunicodechar{Ⅲ}{{\bookromanfont Ⅲ}}
+\newunicodechar{Ⅳ}{{\bookromanfont Ⅳ}}
+\newunicodechar{Ⅴ}{{\bookromanfont Ⅴ}}
+\newunicodechar{①}{{\bookromanfont ①}}
+\newunicodechar{②}{{\bookromanfont ②}}
+\newunicodechar{③}{{\bookromanfont ③}}
+\newunicodechar{④}{{\bookromanfont ④}}
+\newunicodechar{⑤}{{\bookromanfont ⑤}}
+\newunicodechar{⑥}{{\bookromanfont ⑥}}
+\newunicodechar{⑦}{{\bookromanfont ⑦}}
+\newunicodechar{⑧}{{\bookromanfont ⑧}}
+\newunicodechar{⑨}{{\bookromanfont ⑨}}
+\newunicodechar{⑩}{{\bookromanfont ⑩}}
+
+% 封面必须是第一页，先于 \maketitle 输出
+\ifdefined\bookcoverfile
+\AtBeginDocument{%
+  \bookcoverpagetrue
+  \newgeometry{top=0mm,bottom=0mm,left=0mm,right=0mm}%
+  \begin{titlepage}%
+  \thispagestyle{empty}%
+  \noindent\includegraphics[width=\paperwidth,height=\paperheight]{\bookcoverfile}%
+  \end{titlepage}%
+  \restoregeometry
+  \bookcoverpagefalse
+}
+\fi
+
+% 图题、表题已自带“图 X-Y”“表 X-Y”编号，去掉 LaTeX 自动前缀
+\usepackage{caption}
+\captionsetup{labelformat=empty,font={small,color=bookfootergray},skip=8pt}
+\captionsetup[table]{position=top}
+
+% 目录只列编与章；PDF 书签保留到节
+\AtBeginDocument{\hypersetup{bookmarksdepth=2}}
+% 目录中“编”的样式
+\makeatletter
+\renewcommand*\l@part[2]{%
+  \addpenalty{-\@highpenalty}\vskip 1.0em \@plus\p@
+  {\parindent\z@ \rightskip\@pnumwidth \parfillskip -\@pnumwidth
+   \leavevmode\large\bfseries\color{bookaccent} #1\hfil\nobreak\hb@xt@\@pnumwidth{\hss #2}\par}
+  \nobreak}
+\makeatother
+
+% 二三级标题前预留空间，避免标题孤立在页底
+\usepackage{needspace}
+\usepackage{etoolbox}
+\makeatletter
+% 紧跟在上一级标题之后的标题不再单独预留（否则会把上一级标题留在页底）
+\preto\section{\if@nobreak\else\Needspace*{6\baselineskip}\fi}
+\preto\subsection{\if@nobreak\else\Needspace*{5\baselineskip}\fi}
+\@secpenalty=0
+\makeatother
+% 段落首末行不单独跨页
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\usepackage{placeins}
+
+% 浮动体：允许大图与正文同页；浮动页从顶端排起
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.88}
+\setcounter{topnumber}{2}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{14pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+
+% 网址可在任意位置断行，不插连字符
+\usepackage{xurl}
+
+% 中文弯引号：pandoc 输出的 ``…'' 已由 build-pdf.py 还原为 Unicode，这里让 xeCJK 按全角字形排
+\xeCJKDeclareCharClass{FullLeft}{"2018, "201C}
+\xeCJKDeclareCharClass{FullRight}{"2019, "201D}
+\xeCJKsetwidth{“”‘’}{1em}
+% 相邻引号：宋体的弯引号字形窄，默认挤压后会贴在一起，按字形留出可见间距
+\xeCJKsetkern{”}{“}{0.3em}
+\xeCJKsetkern{”}{‘}{0.3em}
+\xeCJKsetkern{’}{“}{0.3em}
+\xeCJKsetkern{’}{‘}{0.3em}
+\xeCJKsetkern{’}{”}{0.12em}
+\xeCJKsetkern{“}{‘}{0.12em}
+\xeCJKsetkern{”}{？}{0.1em}
+\xeCJKsetkern{”}{！}{0.1em}
+% 西文连接号按西文处理
+\xeCJKDeclareCharClass{Default}{"2013}
+% 中文省略号用中文字体（居中）
+\xeCJKDeclareCharClass{CJK}{"2026}
+% 只含西文的引号（不经 xeCJK 全角处理）
+\newcommand{\bookldq}{``}
+\newcommand{\bookrdq}{''}
+% “人工智能+”“互联网+”这类词的“+”：不与前字分开、不插中西文间距，书签里保留“+”
+\newcommand{\bookplus}{\texorpdfstring{\nobreak\hbox{+}}{+}}
+
+% 目录：为页码预留宽度，长条目自动折行；章条目续行与“第X章　”后的标题文字对齐
+\makeatletter
+\patchcmd{\l@chapter}{\setlength\@tempdima{1.5em}}{\setlength\@tempdima{4em}}{}{\PackageWarning{book}{l@chapter patch failed}}
+\renewcommand{\@pnumwidth}{2.4em}
+\renewcommand{\@tocrmarg}{3.4em}
+\makeatother
+
+% 不加载 babel（会接管中文标点），目录标题直接设为中文
+\renewcommand{\contentsname}{目录}

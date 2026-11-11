@@ -1,33 +1,6 @@
-# BP 大师 · BP Master
+# BP 大师
 
-![Version](https://img.shields.io/badge/version-0.2.0-CC785C)
+Valiora Skills · 版本 `0.2.0`
 
-把已经确认的 BP 大纲做成专业 PPTX、PDF 和全稿预览。
-
-## 安装
-
-```bash
-npx skills add bp-deck -g -y
-```
-
-依赖免费的 `lov-any2deck`。
-
-## 使用
-
-```text
-$lov-bp-deck ./business-plan/outline.md
-$lov-bp-deck ./outline.md --style minimal
-$lov-bp-deck 重做第 6 和第 12 页，保持其他页面不变
-```
-
-## 交付物
-
-- PPTX
-- PDF
-- 全部页面图片
-- 全稿预览
-- `deck-manifest.md`
-
-## License
-
-MIT
+- [使用说明](SKILL.md)
+- [返回 Valiora Skills 目录](../../CATALOG.md)
