@@ -1,0 +1,23 @@
+[
+  {
+    "type": "case",
+    "title": "微信 4.1.11 无管理密钥时的初始化诊断",
+    "description": "用户安装付费 skill 后发现无法读取数据；真实 Mac 上微信 4.1.11 运行中、managed keys 不存在。执行 status/doctor 后确认 scanner 自检通过，系统判定 needs login capture。",
+    "input": {
+      "items": [
+        "macOS 微信 4.1.11",
+        "一个 wxid_ 账号目录下的 db_storage",
+        "无 wdb-pro-managed-keys.json"
+      ]
+    },
+    "prompt": "请先获取微信数据库密钥，再确认可以读取数据。",
+    "output": {
+      "items": [
+        "status 返回 requiresLoginCapture true",
+        "doctor 返回 scanner selfTest ok true",
+        "account keyCount 0",
+        "下一步应执行 capture，等待用户重新登录后验证"
+      ]
+    }
+  }
+]

@@ -1,0 +1,104 @@
+schema: lovstudio/skill-card/v1
+version: "0.1.0"
+description: "把本地微信好友与群聊转成好友—群二部网络，参照 NetworkX 示例库跑 17 类社交网络分析，在本机生成带 8 张图表的 HTML 报告，指出枢纽、桥、核心圈、结构社区与单线关系。"
+owner:
+  team: "WeChat Network Analysis Maintainers"
+  contact: "Repository issue tracker"
+license:
+  name: MIT
+  terms: "允许使用、修改和分发；保留版权与许可声明。付费渠道的访问权益另按 LovStudio 条款执行。"
+  url: "LICENSE"
+use_case:
+  audience: "想从结构上看清自己微信人脉的个人用户、社群运营者与研究者"
+  scenario: "在自己的电脑上分析自己的微信好友与群聊，得到可回读的网络分析报告"
+  tasks:
+    - "经 lov-wdb-cli 只读导出匿名化的好友—群网络"
+    - "运行度分布、小世界基线、中心性、结构洞、α/β 核、社区与块模型、TrustRank、脆弱点、谱分析等"
+    - "生成本地 HTML 报告，并由 Agent 依据指标撰写主要发现"
+deployment:
+  geography: global
+  environments:
+    - "macOS 本机，微信 4.x 本地数据"
+    - "任意支持 Agent Skills 的本地 Agent 宿主"
+requirements:
+  credentials: "本机微信数据库密钥由 lov-wdb-cli 准备；本 Skill 不处理密钥"
+  dependencies:
+    - "lov-wdb-cli（可选上游，用于导出本地微信数据）"
+    - "lov-branding-consistency"
+  runtime:
+    - "导出：Python 3.9+"
+    - "分析：Python 3.10+，networkx>=3.4、scipy、numpy、matplotlib"
+risks:
+  - risk: "报告含好友与群的真实名称，被转发会泄露他人隐私"
+    mitigation: "只在本机生成；导出文件不含微信账号、库路径与表名；Skill 明确禁止未经用户决定的上传与发布"
+  - risk: "把结构指标误读为关系亲疏或人品判断"
+    mitigation: "报告与写作约束要求每条发现落到具体指标，社区只作结构描述，并注明投影聚集系数偏高、特征向量局部化、机器人账号等偏差"
+  - risk: "大网络上个别算法运行过久"
+    mitigation: "介数与距离抽样；结构洞向量化；SNAP 默认跳过并可限时；单项失败写入 errors 不阻断报告"
+references:
+  - title: "Primary Skill instructions"
+    path: "SKILL.md"
+  - title: "分析目录与 NetworkX 示例覆盖"
+    path: "references/analysis-catalog.md"
+  - title: "输入格式 wdb-network/v1"
+    path: "references/network-schema.md"
+output:
+  types:
+    - "本地 HTML 网络分析报告"
+    - "results.json 分析结果与 charts.json 图表"
+  formats:
+    - "HTML（内联 SVG，随明暗主题切换）"
+    - "JSON"
+  parameters:
+    - "--cap 紧密投影群规模上限"
+    - "--samples 介数抽样源点数"
+    - "--inner 核心圈私聊阈值"
+    - "--series 系列群正则"
+    - "--snap-timeout SNAP 限时"
+  validation:
+    - "results.json 的 errors 为空或已在附录说明"
+    - "报告与导出文件中 wxid、数据库路径、表名计数为 0"
+    - "报告章节与图表在浏览器中可读"
+  description: "报告包含主要发现、数据与建模、概况、度分布、几度分隔与小世界、中心性、私聊与网络位置、结构洞、核心—边缘、社区与块模型、群重叠、TrustRank、脆弱点、同配性与谱特征及附录。"
+ethical_considerations: "只分析用户本人的数据；不推测动机、情感或人品；不把含第三方名称的报告公开；导出与计算全部在本机完成。"
+dimensions:
+  - id: analytic-coverage
+    label: "分析覆盖度"
+    description: "是否系统覆盖 NetworkX 示例库中适用于社交关系的分析，并说明不适用项。"
+    evidence: "17 类分析覆盖 NetworkX 示例库中 24 个相关示例（SNAP 默认只做属性分组，完整摘要需限时开启）；有向图、组合优化、地理与绘图类示例逐项列出不运行原因。"
+    score: "evidence-backed"
+  - id: correctness
+    label: "正确性与可复现"
+    description: "结果是否可复现，自实现算法是否与参考实现一致。"
+    evidence: "真实案例中，泛化后的脚本与探索版分析在 10 个关键指标上完全一致；Burt 约束度与有效规模在 Les Misérables 和随机加权图上与 networkx 逐节点结果误差小于 1e-15；随机种子固定。"
+    score: "evidence-backed"
+  - id: efficiency
+    label: "运行效率"
+    description: "万人规模通讯录能否在分钟级完成。"
+    evidence: "8,663 位好友、2,944 个群、30,582 条入群关系：导出 135 秒，17 类分析约 262 秒；结构洞从 networkx 原实现每个高连接节点约 5 秒，降到全部 5,330 个节点共 1.9 秒。"
+    score: "evidence-backed"
+  - id: privacy
+    label: "隐私边界"
+    description: "导出与产物是否避免账号、路径与表名外泄，且只在本机交付。"
+    evidence: "真实案例的 network.json、results.json 与报告中 wxid、数据库路径、表名的计数均为 0；全部读取经 lov-wdb-cli 隔离副本。"
+    score: "evidence-backed"
+pricing:
+  model: paid
+  currency: CNY
+  list_price_cny: 19
+  list_price_credits: 268
+  basis: "交付一条已在万人通讯录上验证的完整流水线：只读导出、17 类网络分析、性能修正、8 张图表与报告生成，替代数小时到数天的手工建模与编码。"
+  boundary: "包含本地脚本、分析与写作指令、演示数据；不包含微信密钥准备（由 lov-wdb-cli 负责）、云端运行、人工解读服务或任何发布。"
+  review_trigger: "微信本地库结构变化、networkx 主要版本升级、或真实用户反馈显示价值与价格不符时复评。"
+  confidence: internal
+distribution:
+  paid:
+    - channel: lovstudio
+      status: preparing
+    - channel: workbuddy
+      status: not-published
+    - channel: skillpay
+      status: not-published
+  free:
+    - channel: github
+      status: not-published

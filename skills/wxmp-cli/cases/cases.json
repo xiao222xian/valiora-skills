@@ -1,0 +1,10 @@
+[
+  {
+    "type": "case",
+    "title": "微探 app 转为可调用 CLI",
+    "description": "用户要求将当前 app 转为 /lov-wxmp-cli，完成了真实缓存读取与四种格式导出验证。",
+    "input": {"items": ["当前 wxmp-cracker-app 源码", "本机实际 wcx 文章缓存，仅用于只读验收"]},
+    "prompt": "把本 app 转成 /lov-wxmp-cli",
+    "output": {"items": ["已安装 lov-wxmp-cli 与本地 Skill 入口", "临时导出经逐文件验证后清理", "references/validation.md 中的脱敏验证记录"]}
+  }
+]

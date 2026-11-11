@@ -1,0 +1,66 @@
+schema: skill-manifest/v1
+id: lov-wdb-networkx-analysis
+display_name: "微信人脉网络分析"
+display_name_en: "WeChat Network Analysis"
+version: "0.1.0"
+runtime: skill-runtime/v1
+context:
+  profile:
+    schema: user-profile/v1
+    source: shared-profile
+    read:
+      - user
+      - brand
+      - workspace
+      - preferences
+      - skills.lov-wdb-networkx-analysis
+    persist:
+      enabled: true
+      namespace: skills.lov-wdb-networkx-analysis
+      records_path: skills.lov-wdb-networkx-analysis.records
+      write_policy: direct-user-statement
+      atomic: true
+    fields:
+      - path: user.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要用户身份，请提供名称。
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+      - path: brand.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要品牌身份，请提供品牌名称。
+      - path: brand.site
+        required: false
+        question: 如果需要品牌官网，请提供地址。
+      - path: brand.tone
+        required: false
+        question: 如果已有品牌语气或审美关键词，请提供它们。
+      - path: skills.lov-wdb-networkx-analysis.records.work_dir
+        required: false
+        question: 导出数据与中间结果放在哪个私有目录？（默认 ./wdb-networkx/）
+      - path: skills.lov-wdb-networkx-analysis.records.report_dir
+        required: false
+        question: 报告 HTML 保存到哪个目录？
+      - path: skills.lov-wdb-networkx-analysis.records.account
+        required: false
+        question: 本机有多个微信账号时，默认分析哪一个？
+  preferences:
+    namespace: lov_wdb_networkx_analysis
+    fields:
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+  interaction:
+    ask_missing: true
+    max_questions: 1

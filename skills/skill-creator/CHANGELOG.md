@@ -1,0 +1,242 @@
+# Changelog
+
+## [4.6.8] - 2026-10-31
+
+### Fixed
+
+- New scaffolds write `metadata.author: lovstudio` and an MIT LICENSE for `LovStudio` again; the 2026-08-09 de-branding pass had changed both templates to `skill-publisher` / `Skill Publisher`, so every new Skill inherited the rewrite.
+- init_skill.py resolves roots from the `lovstudio.skill_repos_root` / `lovstudio.skills_install_dir` profile keys and the `LOVSTUDIO_SKILL_CREATOR_REPOS_ROOT` / `LOVSTUDIO_SKILLS_INSTALL_DIR` variables again; the shared profile keeps these roots under `lovstudio.*`, so the rewritten `skill-publisher.*` keys never matched.
+- README, SKILL.md, templates, migration notes, cloud-split, the LICENSE, and historical changelog entries are restored from the pre-rewrite text; descriptive brand mentions use Lovstudio.AI. `SKILL_PROFILE_PATH` and the `.skill-publisher` profile fallback stay as current compatibility contracts.
+- Add regressions for the scaffold author and LICENSE and for `lovstudio.*` profile and environment root resolution.
+
+## [4.6.7] - 2026-10-29
+
+### Fixed
+
+- validate_skill.py fails when `skill.yaml`, `skill-card.yaml`, or `pricing-card.yaml` declares a `version` different from `SKILL.md` `metadata.version`, listing every file's value; lov-koubo-media-creator 0.2.0 shipped with `skill.yaml` still at 0.1.0 while the old check passed.
+- SKILL.md states that `metadata.version` is the single version source and all versioned files are bumped together.
+
+## [4.6.6] - 2026-10-04
+
+### Changed
+
+- cloud-split guidance: paid Skills are no longer encrypted, so the non-cloud option is a normal paid Skill whose owners download plain source.
+
+## [4.6.5] - 2026-09-28
+
+### Fixed
+
+- accept the lovstudio CLI install preflight key in frontmatter
+- validate_skill.py allows top-level dependencies and checks each entry is {name, check, install} (optional companion hint, not depends_on)
+
+## [4.6.4] - 2026-09-25
+
+### Added
+
+- 合并本地提交与未提交改动到上游 4.6.0 之上
+- 本地改动：统一展示名为「Skill 工坊」，保持调用 ID 与能力契约。
+- 本地改动：Use approved product naming styles without imposing object-action labels
+- 本地改动：require accurate concise and consistent Skill names
+- 本地改动：verify name, description, workflow and neighboring capability distinctions before completion
+
+## [4.6.0] - 2026-09-07
+
+- Support raw, nested, archived and partially migrated slash commands.
+- Add read-only batch inventory and isolated preparation with source checksums.
+- Require semantic portability, alias resolution, preserved safeguards and per-item website verification.
+
+## [4.5.0] - 2026-08-30
+
+### Added
+
+- classify generated output as authored prose, microcopy, verbatim, or deterministic
+- scaffold an authorship ledger and discourse-integrity contract for authored prose
+- automatically enable branding consistency for authored prose and microcopy
+- support per-module content classes in mixed Skill Kits
+
+## [4.4.0] - 2026-08-30
+
+### Added
+
+- add audience-visible branding dependency scaffolding
+- move compatibility and depends_on to canonical top-level frontmatter
+
+## 4.3.0
+
+- Add mandatory nearby-Skill composition analysis and a generated atomic-handoff record.
+
+## 4.2.0
+
+- Make `user-profile/v1` a default contract for every generated Skill.
+- Add cross-session profile reads and atomic direct-user record persistence.
+- Generate `skill.yaml`, `references/user-profile.md`, and `profile_store.py` for
+  single Skills and embedded Skill Kit modules.
+
+## 4.1.0
+
+- Require a reusable Skill trust bundle: Skill Card, real user case, dimension
+  map, pricing basis, and explicit distribution states.
+- Scaffold machine-readable and human-readable card files plus a case template.
+- Validate Input → Prompt → Output evidence, dimension evidence, pricing basis,
+  and unresolved placeholders before local completion.
+- Expand the standard to cover language units such as words, idioms, slang, and
+  complex expressions when a Skill's domain needs them.
+
+## 4.0.0
+
+- Make local source creation, validation, and local installation the complete
+  default workflow.
+- Move remote repositories, catalogs, marketplace packaging, uploads, and live
+  verification to the separate `lov-skill-publisher` capability.
+- Infer user configuration from persistent workspace, brand, identity, output,
+  locale, and provider needs instead of asking users to choose a mode.
+- Remove the LovStudio-internal configuration branch; every source is portable
+  and LovStudio is represented through ordinary profile values.
+- Add opt-in `--user-config` and local `--install-dir` scaffold controls.
+
+## 3.1.0
+
+- Infer implementation type and Single Skill versus Skill Kit composition from
+  product requirements instead of asking users to choose technical machinery.
+- Reserve interactive questions for unresolved product, commercial,
+  distribution, and user-facing configuration decisions.
+- Prefer contextual prefill and sensible defaults before interactive prompts.
+
+## 3.0.0
+
+- Separate portable source frontmatter from platform distribution metadata.
+- Add Tencent WorkBuddy as a first-class distribution profile.
+- Generate self-contained Skill Kits with `kit.yaml` and embedded modules.
+- Add standard-YAML source, WorkBuddy, and package validation.
+- Add deterministic WorkBuddy ZIP building with source metadata injection.
+- Emit a combined Connector ZIP plus independently installable controller and
+  module ZIPs for composable Skill Kits.
+- Reject missing modules, broken local links, unresolved placeholders, private
+  paths, caches, and compiled Python artifacts before release.
+- Require explicit activation and non-trigger conditions for every Skill.
+
+## 2.9.1
+
+- Make synchronization to `lovstudio.ai/skills` a mandatory publication step.
+- Revalidate catalog, detail, cases, and user-facing routes after catalog merge.
+- Require live HTTP, version, and content checks before reporting publication.
+
+## 2.9.0
+
+- Remove the repository-target question from the interactive creation flow.
+- Remove the obsolete `--target` and `--dev-skills` scaffold arguments.
+- Make `lovstudio/{name}-skill` an unconditional source-repository invariant.
+- Keep general-skills and dev-skills as inferred downstream distribution only.
+
+## 2.8.0
+
+- Make `lovstudio/{name}-skill` the only supported source-repository model.
+- Treat `lovstudio/dev-skills` as a release-driven generated aggregate mirror.
+- Scaffold CI, MIT license, and changelog files for every new independent skill.
+- Reject the retired `--target dev-skills` mode with migration guidance.
+
+All notable changes to this skill are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
+
+## [2.7.0] - 2026-05-07
+
+### Added
+
+- make scaffold roots profile driven
+- resolve source roots from LOVSTUDIO_SKILL_CREATOR_* env vars or shared profile before safe fallbacks
+- remove personal workspace and fixed agent runtime paths from generated templates
+
+## [2.6.1] - 2026-05-07
+
+### Fixed
+
+- publish LovStudio skill standard reference
+- add references/skill-standard.md as the canonical standardization document
+
+## [2.6.0] - 2026-05-07
+
+### Added
+
+- standardize config env vars on LOVSTUDIO_SKILLS namespace
+- replace AGENT_SKILL_* in generated templates
+- keep defaults under ~/.lovstudio/skills
+
+## [2.5.0] - 2026-05-07
+
+### Added
+
+- move default skill profile under ~/.lovstudio
+- keep AGENT_SKILL_PROFILE as the portable override
+- default generated brand/design config paths to ~/.lovstudio/skills
+
+## [2.4.0] - 2026-05-07
+
+### Added
+
+- switch public config contract to AGENT_SKILL profile
+- replace LovStudio-prefixed profile paths in new-skill templates
+- keep LovStudio paths as private authoring examples, not reusable runtime API
+
+## [2.3.0] - 2026-05-06
+
+### Added
+
+- add portable user configuration scaffolding
+- switch new templates to Agent Skills-compatible lov-<name> frontmatter
+- generate references/user-config.md for new skills
+- move historical migration notes into references/migration.md for progressive disclosure
+
+## [2.2.0] - 2026-05-06
+
+### Added
+
+- Document optional SKILL.md frontmatter `depends_on` for required skill-level dependencies.
+- Scaffold templates now include commented `depends_on` guidance so new skills can declare reuse relationships explicitly.
+
+## [2.1.0] - 2026-05-06
+
+### Added
+
+- Add `dev-skills` as a first-class repository target for free Meta / Dev Tools skills.
+- `init_skill.py` now supports `--target dev-skills` and `--dev-skills`.
+- Document `repo: lovstudio/dev-skills` + `skill_path: skills/<name>` registration and marketplace plugin updates.
+
+## [2.0.0] - 2026-04-18
+
+### Changed
+
+- Rewrite for per-skill-repo architecture. Each skill is now an independent repo at `lovstudio/{name}-skill` instead of a subdirectory of a monorepo.
+- Default scaffold path: `~/lovstudio/coding/skills/{name}-skill/` (was `skills/lov-{name}/`).
+- Install hint: `git clone` each skill repo (replaces `npx skills add lovstudio/skills`).
+- `init_skill.py`: accepts `--paid`, auto-creates `.gitignore`, and prints `gh repo create` + symlink + index-registration next-steps instead of monorepo-dev-flow hints.
+
+### Added
+
+- Step 5b: PR to `lovstudio/skills` central index (`skills.yaml` + `README.md`).
+- Step 5d: lovstudio.ai ISR cache revalidation via `skills-index` tag.
+- Migration note for legacy skills still in the monorepo structure.
+
+### Removed
+
+- Step 0 (repo choice): `lovstudio/pro-skills` was archived 2026-04-16. `paid` now lives only in `lov-general-skills/skills.yaml` as catalog metadata, not as a skill property.
+
+## [1.2.0] - 2026-04-15
+
+### Added
+
+- Add Step 0: repo selection (lovstudio/skills vs lovstudio/pro-skills)
+- Step 5c: create PR to chosen target repo instead of push to main
+
+## [1.1.1] - 2026-04-14
+
+### Fixed
+
+- Add publish workflow: symlink chain + git push to Step 5
+
+## [1.1.0] - 2026-04-14
+
+### Added
+
+- Fix init_skill.py repo detection — prefer lov-skills over cwd
+- README template now includes version badge
+- Remove CHANGELOG from 'What NOT to Include' (managed by skill-optimizer)

@@ -1,0 +1,11 @@
+schema: lovstudio/pricing-card/v1
+version: "0.1.1"
+model: vip_membership
+currency: CNY
+list_price_cny: null
+status: "商业模式已确认（2026-10-14）：包含在 Lovstudio.AI VIP Membership 全套权益中；本次官网登记与下载权益待发布流程验证，私有源码不进入免费镜像"
+value_anchor: "省下从零搭一条可交付的三维渲染链的时间：版本锁定、渲染后端、分块渲染、单章预览、材质与机位工具库和三维坑表都已在《如何打造一款特斯拉》里踩过一遍。该片的三维重制（渲染路线调研、工具库、15 章场景、授权核查）从 v0.1 收到「过于幼稚」的反馈到 v0.2 交付约 14 小时（2026-10-11 20:59 至 2026-10-12 10:51，UTC），用户中途问过「都做了一天了」"
+basis: "用户于 2026-10-14 确认整套 VIP Membership 打包销售。本 Skill 与依赖 lov-motion-media-creator、lov-branding-consistency 均包含在 Lovstudio.AI VIP Membership 全套权益中，不单独定价、不兑换 Credits；会员金额以实际会员方案为准，本卡不承诺金额。价值来自一部已发布片子的三维工程经验与可复用的起步叠加层"
+boundary: "会员权益包含本 Skill 的三维起步叠加层（场景工具库、示例章节、渲染设置、贴图下载脚本、bootstrap_3d.py）、三维风格语法、渲染设置与耗时、贴图与模型授权规则、三维坑表，以及依赖 lov-motion-media-creator、lov-branding-consistency 的 Skill 使用权益。交付包不附带贴图、HDRI 与模型文件；会员权益不包含 GPU 与渲染时间、TTS 与 AI 配乐与 AI 封面等第三方费用、Blender 等离线渲染、人工代制作"
+review_trigger: "VIP Membership 权益范围或商业模式调整时；第二部三维片交付后；lov-motion-media-creator 升主版本时；three、R3F 或 postprocessing 的版本锁需要升级时"
+confidence: low

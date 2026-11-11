@@ -1,0 +1,131 @@
+schema: lovstudio/skill-card/v1
+version: "0.6.0"
+description: "把一场采访录像（手机竖拍、领夹麦为主，可加微信聊天、被访者自述、公众号文章与现场照片）剪成 2–4 分钟（最长约 4 分钟）的视频号竖版采访短片：被访者原话做冷开场，重排成约 5 章，提问卡与回答大字幕分开，人名条、地点条、讲解图形、跳切推近、自然美颜、按内容生成的配乐、合影与官方 Logo 收尾；交付审片版、字幕、封面 A/B、发布文案与交付报告，批准后交给发布环节。"
+owner:
+  team: "Lovstudio.AI"
+  contact: "通过 Lovstudio.AI 官网联系"
+license:
+  name: MIT
+  terms: "MIT。起步工程与脚本可自由修改；字体、配乐与第三方模型的授权以各自条款为准。"
+  url: "../LICENSE"
+use_case:
+  audience: "做创业者、嘉宾访谈短视频的创作者与品牌工作室"
+  scenario: "活动或拜访中用手机拍了一段单人采访，想当天做成一条适合视频号传播的竖版短片，并用聊天记录、本人公开文字补齐背景"
+  tasks:
+    - "盘点录像、照片（连子文件夹）与上下文（微信聊天、自述、公众号），建立事实台账"
+    - "两模型转写、选原话钩子、重排约 5 章、写导演阐述与剪辑表"
+    - "包络加回转写试切每个切点，逐句复检剪口"
+    - "杜比视界经苹果管线转 SDR 源（其他 HDR 色调映射）、保音高变速、自然美颜（被访者要求时用强档）、跳切推近、两模型取字幕时间、字幕分词断行"
+    - "片名卡、章节卡、进度条、提问卡、人名条、讲解图形、照片、被访者生活照相册与 Logo 收尾"
+    - "按内容生成配乐、人声分离判定、调用 lov-media-creator 的混音与门禁"
+    - "视频号参数封装、色彩标记、5 fps 分页联系表、逐帧二维码与单帧坏帧扫描、手机预览"
+    - "3:4 封面 A/B 与选定版的 4:3 分享卡，发布交接（一次确认收齐字幕、事实、合集、原创与位置）"
+deployment:
+  geography: global
+  environments:
+    - "本地 macOS（Apple Silicon）开发机"
+    - "Claude Code、Codex 等支持 Agent Skills 的宿主"
+requirements:
+  credentials: "可选：OpenRouter 的 OPENROUTER_API_KEY（Lyria 配乐，只从环境变量读取，不写入文件）"
+  dependencies:
+    - "lov-branding-consistency"
+    - "lov-media-creator（混音、母带与音频质检脚本）"
+  runtime:
+    - "Python 3.9+：numpy、opencv-python、mlx-whisper、opencc、jieba"
+    - "FFmpeg / FFprobe（含 zscale）；macOS avconvert（杜比视界素材）"
+    - "Node 20+、Remotion 4"
+    - "OpenCV YuNet 人脸模型（OpenCV model zoo 下载）；macOS swiftc"
+    - "首次转写从 Hugging Face 下载两个 Whisper 模型（约 3.1 GB + 1.6 GB）"
+risks:
+  - risk: "把转写错误或推断写进字幕、人名条"
+    mitigation: "两模型交叉转写；分歧专名列给作者；人名条与数字只用事实台账里有出处的信息"
+  - risk: "剪口吃字或带进口水词、另一人的插话"
+    mitigation: "每个句首句尾包络加回转写试切；逐句两模型复检；同源相邻句共用切点"
+  - risk: "公开了被访者不愿公开的信息"
+    mitigation: "拒答与「不方便」的内容整段删；编码成片二维码扫描加全片联系表；身份信息能否公开问作者"
+  - risk: "替被访者的宣传口径背书"
+    mitigation: "宣传口径保留为引述，不写成片子的结论"
+  - risk: "配乐含人声或尾部断档"
+    mitigation: "人声分离判定代替 Whisper；cue 按可闻尾音对齐；音乐 stem 断档扫描"
+  - risk: "代作者接受平台条款或未经确认就发布"
+    mitigation: "原创条款、合集、位置与字幕批准在终稿确认里一次问齐，作者明确同意后才由发布环节提交"
+  - risk: "杜比视界素材经 ffmpeg 色调映射过亮偏品红"
+    mitigation: "盘点时 sdr_source.py 检测杜比视界，用 avconvert 转整条 SDR 源并核对帧数、起点、时长与 bt709；build_timeline 遇到杜比视界源打印 WARN"
+  - risk: "单模型取字幕时间出现闪行、首行晚出或边缘行退回临时时间"
+    mitigation: "subs_from_lines 两模型逐句择优（排除显示过快的一方）、缺字行跨模型补位、首行从句首开始、行首吸附片段起点、单字闪行并入邻行"
+  - risk: "中间轨色彩矩阵与渲染端不一致，整片轻微偏色且回读门禁看不出来"
+    mitigation: "fx_pieces 编解码都显式用 BT.709 并写标记；check_timeline --mezz 断言 color_space=bt709。首个案例成片有这处轻微偏色（已知局限，交付后的审查才发现）"
+  - risk: "盘点漏掉子文件夹里的素材（作者后放进去的被访者照片）"
+    mitigation: "素材清单用 find -maxdepth 2 连子文件夹一起列；作者说加了照片时先找第一次盘点之后新增的目录"
+  - risk: "美颜过度或改变被访者样貌"
+    mitigation: "默认自然档，交付前给作者看近景前后对比；强档只在被访者要求时用；两档都不改脸型，改脸型要被访者明确同意"
+  - risk: "渲染偶发的单帧坏帧（花屏、错位）只有一帧，5 fps 联系表抽不到"
+    mitigation: "封装时逐帧分块比对前后两帧（glitch_scan.py），每处命中出前一帧 / 本帧 / 后一帧三联图人工判；片尾闪白、照片快门闪白、运动模糊只打标签、不自动放行；真坏帧重渲那一段再扫。只抓一帧的坏帧"
+references:
+  - title: "Primary Skill instructions"
+    path: "SKILL.md"
+  - title: "片型语法"
+    path: "references/style-grammar.md"
+  - title: "流水线与门禁"
+    path: "references/pipeline.md"
+  - title: "上下文来源"
+    path: "references/context-sources.md"
+  - title: "发布交接"
+    path: "references/publish-handoff.md"
+  - title: "踩坑记录"
+    path: "references/pitfalls.md"
+  - title: "Skill 组合"
+    path: "references/skill-composition.md"
+output:
+  types:
+    - "视频号竖版 9:16 审片版与平台成片（批准后）"
+    - "审片字幕 SRT 与批准字幕"
+    - "3:4 封面 A/B 与选定版的 4:3 分享卡（发 B 站等横版平台时另出 16:9）"
+    - "发布文案、导演阐述、交付报告（含事实核对）与质检产物"
+  formats:
+    - "MP4（H.264 + AAC）"
+    - "SRT"
+    - "PNG / JPG"
+    - "Markdown / JSON"
+  parameters:
+    - "源录像、照片与上下文来源"
+    - "片名与封面主标题（来自原话）"
+    - "系列名、官方 Logo、字体、语速、是否美颜与美颜档位"
+  validation:
+    - "逐句两模型回转写复检剪口"
+    - "成片时间线连续、字幕不重叠、重点词约三分之一（check_timeline.py）"
+    - "validate_cues 0 ERROR、smr_check 全过、母带 −16 LUFS-I / ≤ −3 dBTP、可懂度差值达标"
+    - "中间轨帧数与 bt709、引用文件齐全（含相册每一张）、人名条与地点条不压相册（check_timeline.py --public --mezz）"
+    - "编码成片完整解码、≤ 10 Mbps、bt709 标记、5 fps 分页联系表、逐帧二维码扫描与单帧坏帧扫描（命中逐张看三联图）"
+    - "封面 270×360 缩略可读"
+  description: "可交给发布环节的竖版采访短片与封面，带审片字幕、事实核对与可回读的质检报告；工程可在 Remotion Studio 中逐帧预览与修改。"
+ethical_considerations: "被访者是主体：只用其原话，不替其宣传口径背书；拒答与不愿公开的信息不进片；聊天记录只读取与片子直接相关的事实，不把聊天正文写进交付物；出镜人物美颜不改脸型，强档只在被访者要求时用，可关闭；AI 配乐在交付报告与发布交接里写明，平台标注由作者决定。"
+dimensions:
+  - id: correctness
+    label: "原话与事实"
+    description: "字幕、钩子与人名条只用原话和有出处的事实"
+    evidence: "首个案例：37 句全部来自录音；两模型分歧的 4 处专名列给作者，作者发布时一并确认；地点「模力营」按原话、GPS 元数据与公开资料核实，核对记录写在交付报告里"
+    score: null
+  - id: effectiveness
+    label: "片型完成度"
+    description: "一轮产出可发布的竖版短片、封面与报告"
+    evidence: "首个案例 v0.1：2 分 53 秒，−16.05 LUFS / −3.02 dBTP（编码后），6.38 Mbps，完整解码；作者选定封面 A 与片名后提交，视频号已提交、平台审核中（publish_status=platform_pending，2026-10-19 回读「原创审核中」）。已知局限：中间轨色彩矩阵错配，成片肤色轻微偏移，已在 fx_pieces 修复"
+    score: null
+  - id: efficiency
+    label: "剪口效率"
+    description: "切点核验与只重算变动片段，减少返工"
+    evidence: "首个案例中全局转写时间漂移导致 8 处剪口问题，改用试切后一轮修完；片段级缓存让改切点只重渲 1 个片段与美颜"
+    score: null
+pricing:
+  model: vip_membership
+  currency: CNY
+  list_price_cny: null
+  basis: "包含在 Lovstudio.AI VIP Membership 全套权益中（作者 2026-10-21 确认），与必需依赖 lov-media-creator 一起，不单独定价、不兑换 Credits；会员金额以实际会员方案为准"
+  boundary: "含片型语法、流水线门禁、14 个脚本、Remotion 起步工程与模板；不含 AI 配乐等第三方服务费用、字体授权与人工代剪"
+  review_trigger: "会员权益范围或商业模式调整时；连续 10 次真实使用、版本大改或 lov-media-creator 共享契约变化时复评"
+  confidence: low
+distribution:
+  # Lovstudio.AI 官网会员分发（2026-10-21 选定）；源码仓库私有，不进入免费镜像
+  paid:
+    - lovstudio
+  free: []

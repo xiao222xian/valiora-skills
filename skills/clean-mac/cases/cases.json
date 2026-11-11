@@ -1,0 +1,43 @@
+[
+  {
+    "id": "release-173gb-protect-workspaces",
+    "type": "case",
+    "title": "释放 173.38 GB，同时保留活跃项目与应用工作区",
+    "titleEn": "Reclaimed 173.38 GB without touching active projects or app workspaces",
+    "description": "一台 macOS 设备的阶段基线可用空间仅 23.19 GB。经过只读盘点、活跃进程复核、可重建产物精确回收和官方缓存清理，可用空间提升到 196.57 GB；用户选择在不删除最近使用的 Simulator runtime 和命名设备的前提下验收结果。",
+    "descriptionEn": "Starting from a 23.19 GB stage baseline, guarded inventory, active-process checks, exact rebuildable cleanup, and official cache pruning raised real free space to 196.57 GB. The user accepted the result without deleting recently used Simulator runtimes or named devices.",
+    "input": {
+      "items": [
+        "目标：将 macOS 数据卷可用空间提升到 200 GB",
+        "阶段基线：23.19 GB 可用；初始观测最低为 15.11 GB",
+        "Screen Studio、个人资料、消息、浏览器资料、Agent 会话、Git 历史和活跃项目必须保留",
+        "外置盘剩余约 116.05 GB，不能单独满足目标"
+      ]
+    },
+    "prompt": "使用 lov-clean-mac 将 macOS 可用空间提升到 200 GB；任何高影响清理先确认，并保护 Screen Studio、个人资料和活跃项目。",
+    "output": {
+      "items": [
+        "真实可用空间从阶段基线 23.19 GB 提升到 196.57 GB",
+        "按数据卷回读净增 173.38 GB",
+        "回收 19 个非活跃且未跟踪的构建或依赖目录，并清理 Docker 未使用缓存与官方工具缓存",
+        "保留 15 个活跃 Docker 镜像、3 个运行中容器、volumes、最近使用的 iOS runtime、4 个命名 Simulator 设备及所有活跃项目",
+        "用户在了解距 200 GB 尚差 3.43 GB 和补充清理代价后回复“没事，够了”"
+      ]
+    },
+    "testimonial": "没事，够了",
+    "testimonialEn": "That is enough.",
+    "evidence": {
+      "acceptance": "user-confirmed",
+      "verified_at": "2026-08-28",
+      "method": "分阶段读取 /System/Volumes/Data 的真实可用字节；执行前以 lsof、Git/worktree 状态和打开文件排除活跃目录；清理后回读 Docker 保留状态、Simulator 保留项与最终容量。",
+      "privacy": "公开摘要移除了本机绝对路径、具体仓库路径、进程标识、凭据和原始会话正文；付费 Session 仅保留与本次清理和验收直接相关的用户可见对话。"
+    },
+    "session": {
+      "url": "https://lovstudio.ai/yoda/session/yss_BH3E1eias-pZkZTTfsPDfXm30jn634W94ORy4RVvGhc?detail=detailed",
+      "access": "paid",
+      "priceCredits": 14,
+      "pricingRule": "ceil(target-skill-price/10)",
+      "targetSkill": "lov-clean-mac"
+    }
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "title": "历史命令通用化迁移验证",
+    "description": "真实迁移请求的结构与可发现性验收；业务系统操作没有在本案例执行。",
+    "input": {
+      "source": "历史命令或本地已迁移 Skill",
+      "sha256": "e211eb4fdc15b4213eeb66de7376f5be335ccad6e3c7a5a24e6170de8e2e8d1d"
+    },
+    "prompt": "将本地所有历史 slash command 逐一升级，并全部同步官网。",
+    "output": {
+      "artifact": "SKILL.md",
+      "result": "显式输入、自然语言触发、跨宿主执行边界及共享 Profile 合同",
+      "limitation": "该案例不证明外部业务写入成功"
+    }
+  },
+  {
+    "title": "修正重复颠倒的默认交互",
+    "description": "用户指出集成时将默认 Copy Path 改成 Open in IDE，要求修正 Skill，避免后续任务重复出现。",
+    "input": "已集成的项目把 Option + Shift 映射为 locate，并把带 Command 的按键映射为 copy。",
+    "prompt": "默认应该是 Copy Path、Open in IDE，然后修改这个 Skill。",
+    "output": "Skill 固定默认顺序和跨平台快捷键，优先保留包默认值；已有集成也检查行为漂移，并回读两种运行模式。"
+  }
+]

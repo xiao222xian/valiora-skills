@@ -1,0 +1,187 @@
+# Changelog
+
+All notable changes to this skill are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
+
+## [0.13.6] - 2026-10-31
+
+### Fixed
+
+- lint_skill.py 的 MISSING_BRANDING_DEP 不再被共享样板触发：取样前剔除「通用反馈闭环」、User Profile/Runtime context/Execution boundary/Composition 模板段与「Do not activate when」负向触发段，并屏蔽代码块、行内代码和 kebab 形式的 Skill ID。此前每个 LovStudio Skill 都带的反馈闭环里那个「发布」让动作词恒成立，全量 830 个目录命中 158 处；改后 29 处（顶层源仓库 48 → 6）。
+- 产物词表去掉裸 report/报告、document/文档、copy（多指状态输出、文档链接或文件副本），只保留研究/分析报告、marketing copy 等限定写法；英文名词支持复数（posters、articles），补齐 SKILL-18 的审校、打包、typeset 与写成、润色、论文等内容词；告警消息写出命中的动作词与产物词。
+- BODY_NO_ASKUSER 认可 skill.yaml 的 context.interaction（ask_missing/max_questions，Kit 模块沿用 Kit 根清单）与中文「非交互」「无需交互」「全自动」「不主动提问」等声明；全量命中 548 → 15（顶层源仓库 145 → 2）。
+- 新增 tests/test_heuristics.py：反馈闭环、负向触发、Skill ID 与状态报告四类样板不再触发品牌告警，文章、海报、文案 Skill 仍被报出；交互契约、中文声明与 Kit 模块豁免 BODY_NO_ASKUSER，未声明时仍报。
+
+## [0.13.5] - 2026-10-31
+
+### Fixed
+
+- lint_skill.py 恢复 `LOCAL_LOVSTUDIO_PATH` 规则，重新检出 `~/lovstudio`、`$HOME/lovstudio` 私有工作区路径。2026-08-09 的批量去品牌化把它改成只匹配并不存在的 `~/skill-publisher`，220 个 Skill 仓库里有 7 个仓库共 10 处真实路径因此漏检。
+- CHANGELOG 0.3.0–0.6.1 中被同一次批量替换改写的 7 行历史条目按原文恢复。
+- 新增 tests/test_portability.py：检出 `~/lovstudio`，且不误报 `~/.lovstudio/skills/profile.json`。
+
+## [0.13.4] - 2026-10-29
+
+### Fixed
+
+- bump_version.py 把 skill-card.yaml 与 pricing-card.yaml 的顶层 version 纳入版本集合，与 README、SKILL.md、skill.yaml 一起升；卡片未声明 version 时不新增，价格等其他字段不动。此前升版只改三处，导致 56 个 Skill 仓库的 pricing-card 落后、被 skill-publisher 0.8.1 的版本一致性门禁拦下。
+- lint_skill.py 的 VERSION_DRIFT 同时比较两张卡片，与 publisher 门禁口径一致。
+- SKILL.md Step 2/4/7 与 README 写明五处版本源；Step 7 的 git add 示例补上两张卡片，避免改了却没提交。
+- 新增 tests/test_versions.py：升版同步两张卡且保留价格与嵌套 version、无 version 的卡片不新增、lint 报出过期 pricing-card。
+
+## [0.13.3] - 2026-09-25
+
+### Fixed
+
+- inspect_layout.py 将已归档的 general/dev 分拆 catalog 本地检出标为 `legacy`，不再计入 `catalog_state` 与 `sync_state`；通过 `--catalog-root` 显式传入时仍按普通 catalog 比较。
+- 新增回归测试覆盖 legacy 标记与显式传入两种情况；SKILL.md、README 与报告模板同步说明。
+
+## [0.13.2] - 2026-09-07
+
+### Added
+
+- 统一展示名为「Skill 精修师」，保持调用 ID 与能力契约。
+
+## [0.13.1] - 2026-09-07
+
+### Fixed
+
+- Respect approved product names, memorable role names and brand-prefix boundaries
+
+## [0.13.0] - 2026-09-07
+
+### Added
+
+- add capability-based Skill naming review
+- review display names for accuracy, brevity, elegance and consistency while preserving compatibility identifiers
+
+## [0.12.0] - 2026-09-06
+
+### Added
+
+- add read-only collection inventory with explicit canonical candidates
+- discover installation aliases and distinguish broken links and wrong payload targets
+- keep sync plans side-effect free and reject missing paid public payloads
+
+## [0.11.1] - 2026-08-31
+
+### Fixed
+
+- discover the unified lovstudio-skills catalog beside source repositories
+
+## [0.11.0] - 2026-08-31
+
+### Added
+
+- support paid Skill repositories with src and public payload layouts
+- separate approved baselines, requested deltas, and rejected remedies before optimization
+- version authored and public Skill surfaces together
+- detect stale encrypted manifests before distribution sync
+
+## [0.10.0] - 2026-08-30
+
+### Added
+
+- add the shared feedback-classification and approval-invalidation gate used by every LovStudio Skill
+- audit audience-visible Skills for the branding consistency dependency
+- preserve authoritative source text while gating authored presentation copy
+
+## [0.9.0] - 2026-08-24
+
+### Added
+
+- classify task, skill, and global feedback scope
+- store all-Skill feedback policy in the user-level shared instruction layer and invalidate pre-correction approval
+
+## [0.8.0] - 2026-08-12
+
+### Added
+
+- add guarded installation-copy synchronization
+- compare catalog Skill digests instead of reporting discovery alone
+- keep agent installation roots configurable and symlink-aware
+
+## [0.7.1] - 2026-08-12
+
+### Fixed
+
+- separate distribution and catalog synchronization states
+- keep aggregate sync partial when a catalog is not discovered
+
+## [0.7.0] - 2026-08-12
+
+### Added
+
+- add path-aware layout and synchronization auditing
+- keep README, SKILL.md, skill.yaml, and CHANGELOG versions aligned
+- report dirty, drifted, partial, and undiscovered distribution states
+- avoid requiring brand identity for a maintenance-only workflow
+
+## [0.6.3] - 2026-05-07
+
+### Fixed
+
+- avoid CJK false positives for image-only helpers
+- limit document CJK hints to scripts that actually render text
+
+## [0.6.2] - 2026-05-07
+
+### Fixed
+
+- remove local path examples from optimizer docs
+- refresh publish sync instructions for source plus general/dev catalog repos
+
+## [0.6.1] - 2026-05-07
+
+### Fixed
+
+- recognize lovstudio CLI install commands
+- treat npx lovstudio skills add as the canonical README install surface
+
+## [0.6.0] - 2026-05-07
+
+### Added
+
+- recognize LOVSTUDIO_SKILLS config namespace
+- recognize LOVSTUDIO_MAINTAIN_PARTNERS skill-specific config cues
+- treat AGENT_SKILL and PARTNERS env names as legacy migration cues
+
+## [0.5.0] - 2026-05-07
+
+### Added
+
+- recognize generic AGENT_SKILL config cues
+- keep LOVSTUDIO_* only as legacy compatibility cues
+
+## [0.4.0] - 2026-05-06
+
+### Added
+
+- add repo-wide portability audit
+- flag hard-coded local paths and legacy skill names
+- support --all --root scans across skill directories
+- ignore negative examples such as "do not hard-code /Users/mark" when checking required local paths
+
+## [0.3.0] - 2026-04-16
+
+### Added
+
+- Add multi-repo sync in Step 7: source → pro-skills → ~/.claude/skills
+- Document 3-location topology (source, symlink, distribution)
+- Step 7b: auto-sync lovstudio/pro-skills via skills-upstream remote
+- Fail-loud on partial sync instead of silent skip
+
+## [0.2.0] - 2026-04-14
+
+### Added
+
+- Add Step 7: auto commit & push after optimization
+- Update README pipeline diagram to include git push step
+
+## [0.1.0] - 2026-04-10
+
+### Added
+
+- initial release: lint + auto-bump + changelog pipeline
+- lint_skill.py audits frontmatter, README badge, scripts, structure
+- bump_version.py maintains README badge, SKILL.md version, CHANGELOG.md

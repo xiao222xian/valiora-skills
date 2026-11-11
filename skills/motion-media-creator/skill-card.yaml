@@ -1,0 +1,122 @@
+schema: lovstudio/skill-card/v1
+version: "0.9.1"
+description: "无实拍，把一个主题沿一条轴（时间、地图、图鉴、工序或尺度）分章，做成每章一种视觉的动态设计短片：章节标题卡与进度轴 HUD、旁白（TTS 或真人原声）与一眼能读的大字幕（默认中文，可中英双语）、每章一段 AI 配乐并卡在拍上、事实核查；默认交付 16:9 平台成片、16:9 / 4:3 / 3:4 三张封面（AI 无字底图 + 合成排字）、质检报告与发布交接单，用户点名时加出 9:16 竖版。"
+owner:
+  team: "Lovstudio.AI"
+  contact: "通过 Lovstudio.AI 官网联系"
+license:
+  name: MIT
+  terms: "MIT。起步模板中的示例数据与字形可自由修改；系统字体的授权以字体厂商条款为准。"
+  url: "../LICENSE"
+use_case:
+  audience: "做知识类短视频的创作者与品牌工作室"
+  scenario: "没有实拍素材，想用纯动态设计加旁白讲清一段历史、一条路线、一组图鉴、一道工序或一个尺度跨度，发 B 站等横屏平台（需要时也出视频号竖版）"
+  tasks:
+    - "选轴并规划 8–15 章的结构方案与轴关键帧"
+    - "建立事实台账并做对抗核查与示意标注"
+    - "每章生成两条 AI 配乐候选，按节拍清晰度选一条，强拍对准章节第一帧、换段提前 1 秒叠入，拼成全片配乐（也可用一条整片配乐卡起音点），母带到 -16 LUFS"
+    - "写旁白稿，逐句用 TTS 或用户真人原声出声，生成中文或中英双语字幕，混音时音乐与音效让位给人声"
+    - "在 Remotion 中搭建章节场景、章节标题卡与 HUD、转场、片头片尾，文字不低于字号下限"
+    - "默认 16:9 检查、平台成片交付与质检（用户点名时加 9:16）；章节时间轴检查（每章显示时长不少于 10 秒）"
+    - "封面：AI 生成无字底图（给片名留空位，底色随片子取近黑或纸色），片名、英文名、印章与 Logo 由 Remotion 排版，交 16:9、4:3、3:4 三张"
+    - "交付报告写 AI 生成内容清单、版本历史与费用账本汇总；发布交接单给出各平台文案的实测长度、章节时间轴与署名块"
+deployment:
+  geography: global
+  environments:
+    - "本地 macOS / Linux 开发机"
+    - "Claude Code、Codex 等支持 Agent Skills 的宿主"
+requirements:
+  credentials: "可选：OpenRouter 的 OPENROUTER_API_KEY（AI 配乐与封面底图；出图要求余额不低于 1.00 美元）、豆包 Seed-TTS 2.0 的 VOICENGINE_API_KEY（均从环境变量读取，不写入文件）"
+  dependencies:
+    - "lov-branding-consistency"
+  runtime:
+    - "Node 24+、pnpm、Remotion 4"
+    - "Python 3.9+、fontTools、Pillow、numpy、opentype-sanitizer（或 uv）；librosa（经 uv 临时拉起）"
+    - "ffmpeg / ffprobe"
+risks:
+  - risk: "史实错误或把示意画面当成史实"
+    mitigation: "事实台账 + 对抗核查；示意画面就近标注；片尾总说明"
+  - risk: "画面泄露制作技术或工具署名"
+    mitigation: "硬门禁：源码与渲染帧双路排查；元数据只留片名与出品方，文件内工具名回读清零"
+  - risk: "系统字体商用授权不明"
+    mitigation: "交付报告提醒；可替换为开源字体后重渲"
+  - risk: "旁白说出台账之外的事实，或 TTS 读错数字与专名"
+    mitigation: "旁白稿逐句只用台账里的事实；`tts` 字段写出数字与单位的读法，逐句试听；需要时逐句换成真人录音"
+  - risk: "AI 生成内容未声明，或由 Skill 代为决定标注"
+    mitigation: "交付报告与发布交接单逐类列出 TTS 旁白、AI 配乐、AI 封面底图，附平台规则与法规原文；平台上怎么标由用户决定，清单在交接回复里直接给用户看（自动发布的平台提交前不再问）"
+  - risk: "付费调用失败仍被计费（2026-10-12 两次出图断线照样扣费）"
+    mitigation: "每次付费调用记进费用账本；出图前查余额；断线不盲目重试，先核对用量"
+  - risk: "片尾署名指向简介，简介被用户改写后许可链接丢失"
+    mitigation: "片尾署名卡写全作者、标题、许可与许可短链接；简介署名块只是补充"
+  - risk: "平台文案超限、标签被拒或章节时间轴不被识别"
+    mitigation: "交接单的长度都是实测值；署名分完整版与压缩版；章节时间轴由工具生成并检查每章时长"
+references:
+  - title: "Primary Skill instructions"
+    path: "SKILL.md"
+  - title: "流水线与门禁"
+    path: "references/pipeline.md"
+  - title: "片型语法"
+    path: "references/style-grammar.md"
+  - title: "事实台账与示意说明"
+    path: "references/fact-and-disclosure.md"
+  - title: "片型套件约定"
+    path: "references/suite.md"
+  - title: "封面"
+    path: "references/covers.md"
+  - title: "发布交接"
+    path: "references/publish-handoff.md"
+output:
+  types:
+    - "横版 16:9 平台成片（用户点名时加竖版 9:16）"
+    - "16:9、4:3、3:4 三张封面（按比例命名）"
+    - "交付报告（含 AI 生成内容清单、版本历史与费用汇总）与质检产物"
+    - "发布交接单与各平台文案、章节时间轴、署名块"
+  formats:
+    - "MP4（H.264 + AAC）"
+    - "PNG / JPG"
+    - "Markdown / JSON"
+  parameters:
+    - "主题、轴与范围"
+    - "章节数与片长"
+    - "品牌名、官方 Logo、印章文字"
+  validation:
+    - "从编码文件回读：解码、响度、码率、元数据"
+    - "每章联系表与转场窗口检查（每个交付画幅一套）"
+    - "旁白逐句时长不越界、不落在片名卡与片尾卡上；有旁白处音乐压低约 9 dB"
+    - "上屏文字不低于字号下限（字幕 46 / 27 px、标注 22 px、数据 26 px、HUD 16 / 15 px、大数字 120–160 px，按 1920×1080）"
+    - "分章配乐按拟合的节拍网格把小节强拍放在章节第一帧、换段提前叠入，章节起点在同一张节拍网格上；各章节拍相位距网格与彼此都在 ±25 毫秒内"
+    - "整片配乐进出分章配乐的每处衔接两侧相位相差不超过 25 毫秒"
+    - "章节时间轴第一条 00:00、至少 3 章、每章显示时长不少于 10 秒"
+    - "三张封面在 480×270、360×270、270×360 下片名可读，底图无字、无标志"
+    - "片尾署名卡自足，不指向简介"
+    - "事实台账无不成立项"
+  description: "可直接交给发布环节的成片、三张封面、交付报告与发布交接单；工程可在 Remotion Studio 中逐章预览与修改。"
+ethical_considerations: "史实类内容必须有来源并标注示意范围；不伪造引文；品牌只用官方资产；第三方素材在片尾署名；AI 生成内容逐类列清单并附平台规则，由用户决定平台上的标注；不展示与题材无关的个人信息。"
+dimensions:
+  - id: correctness
+    label: "史实与标注"
+    description: "上屏事实有来源，示意范围有标注"
+    evidence: "首个案例 175 条事实对抗核查：119 成立、52 部分成立已改写、4 不成立已修复"
+    score: null
+  - id: effectiveness
+    label: "片型完成度"
+    description: "一次产出带旁白与字幕的成片、封面与质检报告"
+    evidence: "首个案例交付 v0.3：两版成片 -16.1 LUFS、全片解码无错，封面三比例缩略可读；第二个案例《如何打造一款特斯拉》v0.5：173.7 秒、-16.1 LUFS、全片解码无错；2026-10-12 视频号原创审核中、B 站审核中、YouTube 已发布"
+    score: null
+  - id: efficiency
+    label: "协作效率"
+    description: "关键创意给用户少量选项，调研与制作并行"
+    evidence: "首个案例中用户两次催进度；规则已改为 1–2 版选项 + 并行推进"
+    score: null
+pricing:
+  model: one_time
+  currency: CNY
+  list_price_cny: 99
+  basis: "1,394 Credits 一次性购买，与同系列视频制作 Skill 一致；不是定制设计或代制作报价"
+  boundary: "含片型语法、流水线门禁、起步工程模板（含旁白、字幕与混音脚本）与交付脚本；不含 TTS、AI 配乐等第三方服务费用与字体商用授权"
+  review_trigger: "连续 10 次真实使用、版本大改或支持成本明显变化时复评"
+  confidence: medium
+distribution:
+  paid:
+    - lovstudio
+  free: []

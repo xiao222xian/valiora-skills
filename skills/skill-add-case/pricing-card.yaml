@@ -1,0 +1,10 @@
+schema: lovstudio/pricing-card/v1
+version: "0.5.1"
+model: free
+currency: CNY
+list_price_cny: 0
+value_anchor: "Turn an accepted result into a reviewed website case without granting repository access."
+basis: "Free case-contribution utility with offline import files, account submission and public verification."
+boundary: "Includes public case preparation and submission; paid maintainer Session publishing remains explicit and separate."
+review_trigger: "Review if LovStudio changes its case schema, catalog source, cache tags, or official detail-page contract."
+confidence: internal

@@ -1,0 +1,15 @@
+schema: lovstudio/pricing-card/v1
+version: "0.6.0"
+model: vip_membership
+currency: CNY
+list_price_cny: null
+status: "商业模式已确认（2026-10-21）：包含在 Lovstudio.AI VIP Membership 全套权益中，不单独定价、不兑换 Credits；私有源码不进入免费镜像"
+value_anchor: "一条当天可发的采访短片：省去转写对时、剪口核验、包装组件与混音门禁的摸索；外包同类短视频剪辑通常每条数百元起"
+basis: "用户于 2026-10-21 选择计入 VIP Membership。本 Skill 与必需依赖 lov-media-creator、lov-branding-consistency 均包含在会员全套权益中，不单独定价、不兑换 Credits；会员金额以实际会员方案为准，本卡不承诺金额。价值来自两个真实案例验证过的流水线、脚本与起步工程：深圳模力营的采访短片已提交视频号；「对话亢焜」v0.1（杜比视界竖拍 27 分钟 → 3 分 19 秒）作者报告已发布，平台状态未回读"
+boundary: "会员权益包含片型语法、流水线与门禁、14 个脚本、Remotion 起步工程与模板、发布交接规则；不包含 AI 配乐等第三方服务费用、字体授权与人工代剪"
+review_trigger: "VIP Membership 权益范围或商业模式调整时立即复评；之后在连续 10 次真实使用、版本大改、lov-media-creator 共享契约或 Remotion 主版本变化时复评"
+confidence: low
+evidence_gaps:
+  - "两个案例都是作者本人的采访，没有其他用户的案例与使用量数据"
+  - "官网详情页 2026-10-21 回读为「LOVSTUDIO VIP · Included in VIP」会员入口；会员账号的实际下载以安装回读为准"
+  - "必需依赖 lov-media-creator 自 0.2.1 起写进 depends_on，随本 Skill 一并安装；会员以外的账号能否装上它与本 Skill 一样取决于会员权益"

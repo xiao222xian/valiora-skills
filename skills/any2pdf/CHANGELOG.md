@@ -1,0 +1,147 @@
+# Changelog
+
+All notable changes to this skill are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
+
+## [1.5.5] - 2026-10-31
+
+### Fixed
+
+- 恢复 2026-08-09 去品牌化误改的 `warm-academic` 强调色：主题、行内强调与渲染兜底色回到 `#CC785C`，与 `accent_light: #D99A82` 重新一致（替换前原值见 17ad107^）
+- references/themes.md 的主题示例同步恢复；删除已失效的维护备注「warm-academic 的 accent 实为靛蓝 #4F46E5」
+- 新增 tests/test_warm_academic_accent.py
+
+## [1.5.4] - 2026-10-31
+
+### Added
+
+- 附带 `assets/fonts/NotoSansSC-SemiBold.ttf`（Noto Sans SC 2.004，SIL OFL 1.1，许可证见同目录 `OFL.txt`）：`md2pdf.py` 自 1.4.0 起把它列为 CJK 无衬线粗体首选，但字体此前只在未接入真源的安装副本里，仓库里缺失时会回退到系统字体
+
+## [1.5.3] - 2026-10-31
+
+### Fixed
+
+- 标题不再孤悬页底：part/chapter/h3–h5 样式设置 `keepWithNext`，连续标题路径去掉标题与正文之间的 Spacer，改由样式的 `spaceAfter` 承担（补回 2026-09-04 只在未接入真源的安装副本里的修复）
+
+### Added
+
+- 维护备注：补回 2026-09-05 的 4 条经验，涵盖 `warm-academic` 主题的 accent 实际取值、默认 H2 强制分页与 `continuous_headings`、ASCII 流程图换行，以及 SKILL.md 示例中的脚本路径
+
+## [1.5.2] - 2026-09-25
+
+### Added
+
+- 合并本地未提交改动到上游 1.5.0 之上
+- 本地改动：统一展示名为「PDF大师」，保持调用 ID 与能力契约。
+- 本地改动：render CJK text in cover `version` metadata through the mixed-font canvas path
+- 本地改动：generate a text-only back cover when disclaimer or copyright text is supplied without a banner
+- 本地改动：preserve Markdown image syntax shown inside inline code instead of treating it as an image to fetch
+
+## [1.5.0] - 2026-08-24
+
+### Added
+
+- add the shared feedback-classification and approval-invalidation gate used by every LovStudio Skill
+
+## [1.4.1] - 2026-08-22
+
+### Fixed
+
+- fix Skill Publisher source validation contract
+- use portable frontmatter and explicit trigger/non-trigger rules
+- replace broken external preview links with a self-contained theme index
+
+## [1.4.0] - 2026-08-22
+
+### Added
+
+- add Songti reading theme for long Chinese reports
+- use Songti SC Regular with sans headings and explicit symbol fallback
+- add continuous headings, readable tables, and fit-width opening behavior
+- add focused typography regression tests
+- keep release tags aligned with the version declared across README, SKILL.md, and skill.yaml
+
+## [1.3.4] - 2026-05-08
+
+### Added
+
+- Obsidian callout rendering for `> [!NOTE]`, tips, warnings, quotes, and related callout types.
+- Emoji fallback rendering using cached Twemoji images when available, with local emoji-font fallback.
+- LaTeX-style formula handling for inline `$...$` and display `$$...$$` / `\[...\]`; `matplotlib` is optional for rendered formula images.
+- YAML-style frontmatter support for document options such as title, author, theme, watermark, cover, TOC, and watermark settings. Explicit CLI arguments take precedence.
+- Broader Linux font discovery and built-in PDF font fallbacks for lean environments.
+
+### Fixed
+
+- H5/H6 headings are now consumed as compact subsections instead of falling through parser edge cases.
+- Code blocks preserve mid-line alignment by escaping all spaces, not only leading indentation.
+- Cover-page de-duplication no longer drops body content that appears under the first H1.
+- Full/top-band headers use a stable document title instead of page-lagged chapter state.
+
+## [1.3.2] - 2026-04-20
+
+### Changed
+
+- Watermark defaults: single centered mark per page at 0.1 opacity, auto-sized so text width ≈ half page width (previously a tiled grid at theme-dependent opacity with fixed font size 52). Override with `--wm-size / --wm-opacity / --wm-spacing-x / --wm-spacing-y` as before.
+- Back cover banner defaults to the bundled `assets/backcover-banner.jpg` (品牌方 brand banner). Pass `--banner none` to disable, or `--banner <path>` to use your own.
+
+### Added
+
+- `assets/backcover-banner.jpg` — bundled 品牌方 branding banner so the default works for any user who clones the repo.
+- `.github/workflows/auto-tag.yml` — on push to `main`, CI auto-bumps the patch version in SKILL.md, tags it, and pushes the tag (which triggers the existing `release.yml`).
+
+## [1.3.1] - 2026-04-20
+
+### Fixed
+
+- Watermark: when `--wm-spacing-x` and `--wm-spacing-y` are both ≥ 2000, render a single horizontally + vertically centered watermark (with baseline compensation) instead of tiling. Enables large single-mark watermarks (e.g. `--wm-size 200 --wm-spacing-x 9999 --wm-spacing-y 9999`).
+
+## [1.3.0] - 2026-04-20
+
+### Added
+
+- New theme `consulting-navy` — McKinsey / BCG / Deloitte deep-research-report aesthetic: navy hero cover block, ALL-CAPS section banners with thick left bar, left page-stripe, white canvas + serif body
+- New `cover_style: consulting-block` — solid navy hero with white title + meta column strip (MODE / SOURCES / CONFIDENCE / DATE)
+- New `heading_decoration: banner` — H2 renders as tinted box with thick accent left bar (inline, no page break)
+- New `SectionBanner` flowable supporting CJK + Latin in section titles
+- Theme picker option `l) 咨询深蓝` and pandoc preset row for the new theme
+
+### Fixed
+
+- `_preprocess_md` now strips full leading YAML frontmatter (`--- ... ---`); previously only `title:`/`subtitle:`/`author:`/`date:` lines were filtered, so fields like `mode:` / `tagline:` leaked into the body as prose
+
+## [1.2.0] - 2026-04-13
+
+### Added
+
+- Add latex-clean as official theme option (k) using pandoc+XeLaTeX engine
+- New theme: latex-clean — pure LaTeX typography, no cover/decoration, clean academic style
+- Pandoc is now a first-class engine choice, not just a fallback
+
+## [1.1.1] - 2026-04-13
+
+### Fixed
+
+- Expand pandoc theme presets from link-color-only to full parameter sets
+- Add complete pandoc -V flags table for 7 themes (linkcolor, toccolor, urlcolor, watermark)
+- Add chinese-red full working example from 一滕 project
+
+## [1.1.0] - 2026-04-13
+
+### Added
+
+- Add pandoc + XeLaTeX fallback engine for complex documents
+- Document pandoc fallback with watermark, headers/footers, and theme-specific link colors
+- Fallback triggered when reportlab hangs on wide/complex tables
+- Updated skill description to mention dual-engine support
+
+## [1.0.1] - 2026-04-10
+
+### Fixed
+
+- fix silent image drops: resolve relative paths against input md dir
+- resolve relative image paths against the input markdown's directory (not cwd)
+- warn on missing images instead of silently dropping them (stderr)
+- collapse multi-line image refs in _preprocess_md so pandoc --wrap=auto output parses correctly
+- SKILL.md: add Input Format section (markdown-only), document pandoc --wrap=none tip
+- README.md: add version badge

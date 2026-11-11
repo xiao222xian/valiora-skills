@@ -1,0 +1,7 @@
+# 封面工坊 · Cover Studio
+
+![Version](https://img.shields.io/badge/version-0.3.2-CC785C)
+
+`lov-article-creator` 内嵌视觉模块。生成 `2.35:1` 分享封面与独立的 `4:3` 横向正文首图，并验证官方 Logo、尺寸和散列。
+
+本模块随 Kit 分发，不单独安装。

@@ -1,0 +1,340 @@
+{
+  "schema": "lov-cli/v1",
+  "status": "ready",
+  "name": "wxmp",
+  "slug": "wxmp",
+  "command": "lov-wxmp-cli",
+  "package": "lov_wxmp_cli",
+  "version": "0.1.1",
+  "description": "微探命令行：检索、采集和导出微信公众号文章。",
+  "python_dependencies": [
+    "wcx==0.2.4"
+  ],
+  "project": {
+    "name": "wxmp-cracker-app",
+    "root_relative": ".."
+  },
+  "backend": {
+    "kind": "custom",
+    "name": "vendored wcx",
+    "install": "安装本项目 vendor/wcx 与 agent-harness；见 README。",
+    "timeout_seconds": 3600
+  },
+  "commands": [
+    {
+      "name": "status",
+      "description": "查看本地登录配置与缓存概况",
+      "parameters": [],
+      "mutates": false,
+      "network": false,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "accounts",
+      "description": "列出已缓存的公众号",
+      "parameters": [
+        {
+          "name": "query",
+          "kind": "option",
+          "flags": [
+            "--query"
+          ],
+          "type": "string",
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--query"
+        }
+      ],
+      "mutates": false,
+      "network": false,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "articles",
+      "description": "检索公众号缓存文章",
+      "parameters": [
+        {
+          "name": "account",
+          "kind": "positional",
+          "type": "string",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": null
+        },
+        {
+          "name": "query",
+          "kind": "option",
+          "flags": [
+            "--query"
+          ],
+          "type": "string",
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--query"
+        },
+        {
+          "name": "limit",
+          "kind": "option",
+          "flags": [
+            "--limit"
+          ],
+          "type": "int",
+          "required": false,
+          "default": 50,
+          "repeatable": false,
+          "backend_flag": "--limit"
+        },
+        {
+          "name": "offset",
+          "kind": "option",
+          "flags": [
+            "--offset"
+          ],
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "repeatable": false,
+          "backend_flag": "--offset"
+        }
+      ],
+      "mutates": false,
+      "network": false,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "article",
+      "description": "读取一篇缓存文章",
+      "parameters": [
+        {
+          "name": "article",
+          "kind": "positional",
+          "type": "string",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": null
+        }
+      ],
+      "mutates": false,
+      "network": false,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "export",
+      "description": "导出公众号缓存文章",
+      "parameters": [
+        {
+          "name": "account",
+          "kind": "positional",
+          "type": "string",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": null
+        },
+        {
+          "name": "out",
+          "kind": "option",
+          "flags": [
+            "--out"
+          ],
+          "type": "path",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": "--out"
+        },
+        {
+          "name": "format",
+          "kind": "option",
+          "flags": [
+            "--format"
+          ],
+          "type": "string",
+          "required": false,
+          "default": "all",
+          "choices": [
+            "all",
+            "md",
+            "json",
+            "csv"
+          ],
+          "repeatable": false,
+          "backend_flag": "--format"
+        },
+        {
+          "name": "body",
+          "kind": "option",
+          "flags": [
+            "--body"
+          ],
+          "type": "string",
+          "required": false,
+          "default": "md",
+          "choices": [
+            "md",
+            "html",
+            "none"
+          ],
+          "repeatable": false,
+          "backend_flag": "--body"
+        },
+        {
+          "name": "limit",
+          "kind": "option",
+          "flags": [
+            "--limit"
+          ],
+          "type": "int",
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--limit"
+        },
+        {
+          "name": "dry-run",
+          "kind": "flag",
+          "flags": [
+            "--dry-run"
+          ],
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--dry-run"
+        }
+      ],
+      "mutates": true,
+      "network": false,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "search",
+      "description": "在线搜索公众号",
+      "parameters": [
+        {
+          "name": "query",
+          "kind": "positional",
+          "type": "string",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": null
+        }
+      ],
+      "mutates": false,
+      "network": true,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    },
+    {
+      "name": "fetch",
+      "description": "采集已选定公众号的文章",
+      "parameters": [
+        {
+          "name": "account",
+          "kind": "positional",
+          "type": "string",
+          "required": true,
+          "repeatable": false,
+          "backend_flag": null
+        },
+        {
+          "name": "limit",
+          "kind": "option",
+          "flags": [
+            "--limit"
+          ],
+          "type": "int",
+          "required": false,
+          "default": 10,
+          "repeatable": false,
+          "backend_flag": "--limit"
+        },
+        {
+          "name": "content",
+          "kind": "flag",
+          "flags": [
+            "--content"
+          ],
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--content"
+        },
+        {
+          "name": "mode",
+          "kind": "option",
+          "flags": [
+            "--mode"
+          ],
+          "type": "string",
+          "required": false,
+          "default": "forward",
+          "choices": [
+            "forward",
+            "backward",
+            "audit",
+            "classify"
+          ],
+          "repeatable": false,
+          "backend_flag": "--mode"
+        },
+        {
+          "name": "date",
+          "kind": "option",
+          "flags": [
+            "--date"
+          ],
+          "type": "string",
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--date"
+        },
+        {
+          "name": "dry-run",
+          "kind": "flag",
+          "flags": [
+            "--dry-run"
+          ],
+          "required": false,
+          "repeatable": false,
+          "backend_flag": "--dry-run"
+        },
+        {
+          "name": "nickname",
+          "kind": "option",
+          "flags": [
+            "--nickname"
+          ],
+          "type": "string",
+          "required": false,
+          "description": "首次采集时使用 search 结果中的公众号名称"
+        }
+      ],
+      "mutates": true,
+      "network": true,
+      "postconditions": [
+        "Read back database records or generated files; errors return nonzero."
+      ],
+      "argv": []
+    }
+  ],
+  "generated_by": "lov-cli-creator/0.1.0",
+  "generated_at": "2026-09-08T04:35:15+00:00",
+  "unsupported": [
+    "扫码登录窗口",
+    "云端同步",
+    "GitHub / 飞书发布",
+    "桌面分析工作区与标签编辑"
+  ]
+}

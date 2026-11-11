@@ -1,0 +1,190 @@
+{
+ "_example_of": "结构示例，不是默认值：取自 cases/cases.json 的真实案例（一场 9 分钟单人采访剪成 2 分 53 秒竖版短片），姓名、学校、账号、地点与源文件名已替换为占位；新片按自己的素材全部重写。",
+ "title": {
+  "lines": [
+   "05后大四生",
+   "在深圳造",
+   "美国版麻将机"
+  ],
+  "byline": "对话 · 示例嘉宾 Guest"
+ },
+ "chapter_short": {
+  "ch1": "05后创业",
+  "ch2": "麻将馆",
+  "ch3": "美国版麻将机",
+  "ch4": "网友造产品",
+  "ch5": "负一到零"
+ },
+ "nametag": {
+  "start": {
+   "segment_start": "1a",
+   "delay": 0.2
+  },
+  "seconds": 4.6,
+  "name": "示例嘉宾",
+  "en": "Guest",
+  "desc": "05后 · 某大学大四 · AI硬件创业者"
+ },
+ "location": {
+  "start": {
+   "segment_start": "1a",
+   "delay": 0.2
+  },
+  "seconds": 4.6,
+  "text": "深圳 · 某创业园区"
+ },
+ "callouts": [
+  {
+   "kind": "equation",
+   "start": {
+    "anchor": "下面有音响",
+    "segment": "3a"
+   },
+   "end": {
+    "segment_end": "3c"
+   },
+   "steps": [
+    {
+     "at": {
+      "anchor": "下面有音响",
+      "segment": "3a",
+      "delay": 0.35
+     },
+     "text": "音响",
+     "op": ""
+    },
+    {
+     "at": {
+      "anchor": "云台聚光灯",
+      "segment": "3a",
+      "delay": 0.5
+     },
+     "text": "云台聚光灯",
+     "op": "+"
+    },
+    {
+     "at": {
+      "anchor": "隐形",
+      "segment": "3b",
+      "delay": 0.2
+     },
+     "text": "隐形 AI",
+     "op": "+"
+    },
+    {
+     "at": {
+      "anchor": "任意一种氛围",
+      "segment": "3c",
+      "delay": 0.3
+     },
+     "text": "任意氛围",
+     "op": "="
+    }
+   ]
+  },
+  {
+   "kind": "stamp",
+   "start": {
+    "anchor": "美国版的麻将机",
+    "segment": "H2",
+    "delay": 0.25
+   },
+   "end": {
+    "segment_end": "H2"
+   },
+   "text": "美国版麻将机"
+  },
+  {
+   "kind": "number",
+   "start": {
+    "anchor": "800万个",
+    "segment": "3i",
+    "delay": 0.2
+   },
+   "end": {
+    "segment_end": "3i"
+   },
+   "value": "800万",
+   "unit": "个",
+   "label": "地下室里的专属游戏房"
+  },
+  {
+   "kind": "arrow",
+   "start": {
+    "anchor": "负一到零",
+    "segment": "5b",
+    "delay": 0.2
+   },
+   "end": {
+    "segment_end": "5b"
+   },
+   "from": "-1",
+   "to": "0",
+   "label": "创业阶段"
+  }
+ ],
+ "inserts": [
+  {
+   "img": "img/bts.jpg",
+   "start": {
+    "anchor": "关注川哥",
+    "segment": "6c",
+    "delay": 0.05
+   },
+   "end": {
+    "segment_end": "6d"
+   },
+   "focus": [
+    0.82,
+    0.45
+   ]
+  },
+  {
+   "img": "img/group.jpg",
+   "start": {
+    "segment_end": "6d"
+   },
+   "end": {
+    "outro_end_minus": 1.8
+   },
+   "focus": [
+    0.55,
+    0.5
+   ],
+   "flash": true
+  }
+ ],
+ "highlights": {
+  "keys": [
+   "北美老白男",
+   "最有钱",
+   "美国版的麻将机",
+   "不要脸",
+   "05年",
+   "某大学",
+   "二十面",
+   "18岁",
+   "麻将馆",
+   "有机会",
+   "隐形",
+   "800万个",
+   "抛了砖",
+   "Reddit",
+   "负一到零",
+   "收定金",
+   "明年年初",
+   "示例账号",
+   "关注川哥"
+  ],
+  "reuse": [
+   "美国版的麻将机",
+   "北美老白男",
+   "不要脸"
+  ]
+ },
+ "media": {
+  "video": "media/mezz-v0.1.mp4",
+  "audio": "audio/mix-v0.1.m4a"
+ },
+ "logo_seconds": 1.8
+}

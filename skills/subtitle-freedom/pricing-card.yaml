@@ -1,0 +1,10 @@
+schema: lovstudio/pricing-card/v1
+version: "0.9.0"
+model: one_time
+currency: CNY
+list_price_cny: 0.99
+value_anchor: "把一次字幕加工中的 Profile 筛选、必要语言单元判断、时间轴校验和可选艺术层规则沉淀为可复用 Skill。"
+basis: "按一次可复用的字幕加工工作流定价，覆盖生僻词、习语/谚语、俚语、文化表达与复杂句子的必要解释，以及显式开启时的 ASS 规则。"
+boundary: "不包含电影版权内容、不替用户获取未授权媒体、不保证没有输入字幕的语音识别，也不默认生成艺术卡。"
+review_trigger: "新增稳定输出格式、跨播放器回归证据、批量能力或渠道状态改变时复评。"
+confidence: medium

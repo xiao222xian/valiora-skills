@@ -1,0 +1,132 @@
+schema: lovstudio/skill-card/v1
+version: "0.1.1"
+description: "三维图志：没有实拍，用实时三维渲染把一道工序、一件产品的构造或一个尺度讲成产品片质感的分章短片，三维画面标「示意」，真实照片与影像标「资料」并置。本 Skill 只负责三维这一层：叠在 lov-motion-media-creator 起步工程上的三维叠加层（PBR 材质表、物理机位与三维标注投影、按帧可复现的抖动、地面与倒角块、机械臂、glTF 模型加载、后期合成修复与示例章节）、三维风格语法、渲染设置与耗时、贴图与模型授权、三维坑表；分章、事实台账、旁白与字幕、分章配乐、HUD 与章节标题卡、封面、片尾署名、费用账本、交付质检与发布交接都由依赖 lov-motion-media-creator 完成。"
+owner:
+  team: "Lovstudio.AI"
+  contact: "通过 Lovstudio.AI 官网联系"
+license:
+  name: MIT
+  terms: "MIT。起步叠加层不含贴图、模型、HDRI 或品牌资产：CC0 贴图由脚本从 ambientCG、Poly Haven 下载，许可以来源站为准；用户自带的 glTF 模型、照片、影像与音效按各自许可署名。"
+  url: "../LICENSE"
+use_case:
+  audience: "做知识类短视频、需要三维质感的创作者与品牌工作室"
+  scenario: "没有实拍素材，想用三维渲染讲清一道工序、一件产品的构造或一个尺度，并配真实资料照片与影像；二维动态图志被嫌「幼稚」、要升级到产品片质感时"
+  tasks:
+    - "在 lov-motion-media-creator 的起步工程上叠加三维层（scripts/bootstrap_3d.py），按材质表下载 CC0 贴图"
+    - "用场景工具库搭章节：PBR 材质、物理机位、引线标注投影到三维点、冲击抖动、地面与接触阴影、机械臂、glTF 模型"
+    - "三维与资料并置：三维画面标「示意」，真实照片与影像标「资料」；以真实品牌为题时，品牌标志只出现在纪录性质的资料里"
+    - "单章预览与静帧自检：黑帧、未打光、贴图缺失、z-fighting、分块之间的阴影拖影"
+    - "固定 --gl=angle 与并发 4，按章节分块渲染、无损拼接，再交给基础 Skill 的交付与质检"
+    - "贴图、HDRI 与模型逐份登记来源与许可；CC BY 模型的改动（如删除示例标志）写进署名"
+deployment:
+  geography: global
+  environments:
+    - "本地 macOS 开发机（Chrome headless 经 ANGLE 走 Metal；2026-10-12 实测）"
+    - "Linux 与其他 GPU 未实测：先按 references/render.md 测出能用的 --gl 后端"
+    - "Claude Code、Codex 等支持 Agent Skills 的宿主"
+requirements:
+  credentials: "本 Skill 自身不需要。旁白、AI 配乐与封面底图的可选密钥（VOICENGINE_API_KEY、OPENROUTER_API_KEY）沿用 lov-motion-media-creator，只从环境变量读取。"
+  dependencies:
+    - "lov-motion-media-creator（按 0.9.0 编写；提供起步工程底座与全部共享流水线工具）"
+    - "lov-branding-consistency"
+  runtime:
+    - "Node 24+、pnpm、Remotion 4.0.534、React 19.1.0"
+    - "three 0.186.1、@react-three/fiber 9.8.1、@react-three/drei 10.7.9、@react-three/postprocessing 3.2.0、postprocessing 6.39.5、@remotion/three 4.0.534：postprocessing 6.39.5 要求 three < 0.187，fiber 9.8.1 要求 React < 19.4，不能单独升级"
+    - "能跑 WebGL 的 GPU：--gl=angle；默认后端会静默落到软件渲染，约 5.7 秒一帧，不可用（2026-10-12）"
+    - "Python 3.9+（bootstrap_3d.py、fetch_textures.py）"
+    - "ffmpeg / ffprobe；APFS 等支持写时复制的文件系统可让 cp -c 克隆素材目录（否则退回普通复制）"
+    - "首次下载贴图时需要联网；渲染时不联网，HDRI、模型与解码器放在 public/ 自托管"
+risks:
+  - risk: "GPU 渲染耗时长，长时间单次渲染在片尾崩溃，或静默走软件渲染"
+    mitigation: "remotion.config.ts 固定 --gl=angle 与并发 4；按章节分块渲染、ffmpeg concat 无损拼接；改哪章只重渲哪块；单章预览只挂本章。实测：v0.2 全片 5211 帧分 5 块，横版 969 秒、竖版 940 秒（两版并行），v0.3 横版 426 秒（2026-10-12）"
+  - risk: "三维渲染伪影：后期链关掉自动清屏后接触阴影在顺序或分块渲染里拖影、后期合成在每个渲染标签页的首帧黑屏、CC0 金属粗糙度贴图均值约 0.06 让拉丝金属渲染成镜面、机械臂肩部共面 z-fighting、动画用了随机数或实时时钟导致分块之间对不上"
+    mitigation: "起步工具库内置已知修复（GroundShadow 自清渲染目标，替代 drei ContactShadows；后期预热、粗糙度重映射、错开共面几何）；动画只由 useCurrentFrame 推导，tools/determinism.sh 逐帧比对；每章静帧、联系表与转场窗口逐张看；症状、原因与修复见 references/pitfalls-3d.md"
+  - risk: "模型、贴图或 HDRI 授权不清、漏署名，或示例模型自带标志被渲染出来"
+    mitigation: "只用 CC0、公有领域与 CC BY；CC BY-SA 默认不用（2026-10-12 用户决定）；取材当下登记进 src/credits.ts，需要署名的进片尾署名卡；CC BY 模型的改动写进署名；起步叠加层不打包任何模型；上屏字体只用脚本取的三款 SIL OFL 字体，不用系统字体"
+  - risk: "以真实品牌产品为题时，三维模型、AI 图或封面出现对方的标志，或画面被误认为官方内容"
+    mitigation: "三维用通用、无标志的模型并标「车型为示意」一类说明；品牌标志只出现在纪录性质的资料照片里（Profile records.brand_marks）；AI 底图提示词禁止标志、徽章与文字，生成后逐张看；片尾写独立科普、无隶属关系的声明"
+  - risk: "AI 生成内容（TTS 旁白、AI 配乐、AI 封面底图）未声明，或由 Skill 代为决定标注"
+    mitigation: "沿用 lov-motion-media-creator 的 AI 生成内容清单与规则：逐类列出、附平台规则与法规原文，由用户决定平台上怎么标；三维渲染画面不是 AI 生成画面，清单照实写"
+  - risk: "依赖的 lov-motion-media-creator 改了起步工程或流水线，三维叠加层对不上"
+    mitigation: "共享流水线只按 Skill ID 引用、不复制；基础 Skill 升主版本或改起步工程结构时，重跑 bootstrap、类型检查与示例章节渲染"
+  - risk: "证据面窄：只在一部片上验证，工具库原本照「汽车与工厂」写"
+    mitigation: "起步示例换成中性题材的程序化几何；车与工厂的做法只作为案例引用；第二部三维片交付后复评工具库与风格语法"
+references:
+  - title: "Primary Skill instructions"
+    path: "SKILL.md"
+  - title: "三维风格语法"
+    path: "references/style-grammar-3d.md"
+  - title: "场景工具库"
+    path: "references/scene-kit.md"
+  - title: "渲染设置与耗时"
+    path: "references/render.md"
+  - title: "贴图、模型与资料的授权"
+    path: "references/assets-and-licensing.md"
+  - title: "三维坑表"
+    path: "references/pitfalls-3d.md"
+  - title: "与相邻 Skill 的组合"
+    path: "references/skill-composition.md"
+  - title: "User Profile 契约"
+    path: "references/user-profile.md"
+output:
+  types:
+    - "三维图志成片（默认 16:9；画幅、封面、交付报告与发布交接单的形态同 lov-motion-media-creator）"
+    - "带三维叠加层的 Remotion 工程：场景工具库、示例章节、渲染设置与贴图下载脚本"
+    - "每章三维静帧与转场窗口检查图"
+    - "贴图、HDRI 与模型的来源与许可登记，以及片尾署名条目"
+  formats:
+    - "MP4（H.264 + AAC）"
+    - "PNG / JPG"
+    - "TypeScript / TSX 工程"
+    - "Markdown / JSON"
+  parameters:
+    - "主题与轴（工序、构造、尺度最适合三维）"
+    - "主角模型：程序化几何，或用户提供的 glTF 及其许可"
+    - "材质：材质表里的种类与对应 CC0 贴图"
+    - "渲染后端与并发（Profile records.render_backend、records.render_concurrency）"
+  validation:
+    - "每章静帧逐张看：无黑帧、无未打光场景、无缺失贴图、无 z-fighting，分块交界处无阴影拖影"
+    - "动画只由帧号推导，同一帧重复渲染结果一致"
+    - "三维画面都标「示意」，资料素材都标「资料」；真实品牌的标志不出现在三维画面、AI 图与封面里"
+    - "每份贴图、HDRI 与模型都有来源与许可登记，需要署名的进了片尾署名卡"
+    - "lov-motion-media-creator 的全部 Hard gates 照旧：字号下限、章节时间轴、节拍相位、三比例封面、从编码文件回读的交付质检"
+  description: "可直接交给基础 Skill 交付环节的三维图志工程与成片；工程可在 Remotion Studio 或单章预览里逐章修改三维场景。"
+ethical_considerations: "以真实品牌或产品为题时只做独立科普：三维模型用通用、无标志的造型并标示意，品牌标志只出现在纪录性质的资料里，片尾写无隶属声明；不让生成模型画出标志；三维模型、贴图与资料按许可署名并写明改动；AI 生成内容按基础 Skill 列清单，平台上怎么标由用户决定；不展示与题材无关的个人信息。"
+dimensions:
+  - id: correctness
+    label: "三维画面与标注"
+    description: "渲染没有伪影；三维示意与真实资料分得清"
+    evidence: "《如何打造一款特斯拉》v0.2：两种画幅各 14 处章节交界的转场窗口无空帧、无闪断，全片解码无错；每个镜头右上角标「示意」或「资料 · 作者 · 许可」；特斯拉标志只出现在资料照片里，三维画面、自制车机界面与封面里都没有（output/reports/v0.2/delivery-report.md）"
+    score: null
+  - id: effectiveness
+    label: "质感升级"
+    description: "把被评为幼稚的二维动画升级成产品片质感的三维"
+    evidence: "v0.1 二维首版被评「过于幼稚」；三维重制的 v0.2 交付后用户回复「感觉不错」，之后的反馈都针对旁白、字幕、文字大小、配乐与封面，没有再针对三维画面（2026-10-12）。已知上限：车漆、液体与白车身结构细节离实拍仍有距离"
+    score: null
+  - id: efficiency
+    label: "渲染耗时"
+    description: "整片在本机一次交付内渲完，改一章只重渲一块"
+    evidence: "2026-10-12 实测：--gl=angle 下 1080p 重场景约 66–75 毫秒一帧（并发 4，超过 4 没有收益），软件渲染约 5.7 秒一帧；v0.2 全片 5211 帧分 5 块，横版 969 秒、竖版 940 秒（两版并行）；v0.3 横版 426 秒（work/research/tech-report.md，output/reports/v0.2、v0.3 delivery-report.md）"
+    score: null
+  - id: licensing
+    label: "素材授权"
+    description: "三维模型、贴图与资料素材都有可核的许可与署名"
+    evidence: "v0.2 只用 CC0、公有领域、Pexels 与 CC BY 2.0/3.0/4.0，CC BY-SA 未用；2 项 CC BY 照片因作者复核未通过或内容不符被剔除；11 条 CC BY 署名（含车模「已删除示例标志」）写进片尾与简介（work/licenses/assets.json，output/reports/v0.5/publish-handoff.md）"
+    score: null
+  - id: generality
+    label: "可迁移性"
+    description: "换一个题材也能直接起步"
+    evidence: "证据缺口：目前只有一部片；起步示例已换成中性题材的程序化几何，尚未在第二部三维片上验证（2026-10-13）"
+    score: null
+pricing:
+  model: vip_membership
+  currency: CNY
+  list_price_cny: null
+  basis: "包含在 Lovstudio.AI VIP Membership 全套权益中，本 Skill 与依赖均包含，不单独定价、不兑换 Credits（用户于 2026-10-14 确认）；会员金额以实际会员方案为准。价值依据与边界见 pricing-card.yaml"
+  boundary: "会员权益包含本 Skill 与依赖 lov-motion-media-creator、lov-branding-consistency 的 Skill 使用权益；交付包不附带贴图、HDRI 与模型文件，会员权益不包含 GPU 与渲染时间、第三方服务费用或人工代制作"
+  review_trigger: "VIP Membership 权益范围或商业模式调整时；第二部三维片交付后；lov-motion-media-creator 升主版本时"
+  confidence: low
+distribution:
+  status: "已选择 Lovstudio.AI 官网会员分发（2026-10-14）：本次官网目录登记与下载权益待发布流程验证；源码仓库保持私有，不进入免费镜像；未选择其他平台渠道"
+  paid: []
+  free: []

@@ -1,0 +1,49 @@
+schema: skill-manifest/v1
+id: lov-wdb-query
+display_name: "微信数据读取"
+display_name_en: "WeChat Data Query"
+version: "0.6.4"
+runtime: skill-runtime/v1
+context:
+  profile:
+    schema: user-profile/v1
+    source: shared-profile
+    read:
+      - user
+      - brand
+      - workspace
+      - preferences
+      - skills.lov-wdb-query
+    persist:
+      enabled: true
+      namespace: skills.lov-wdb-query
+      records_path: skills.lov-wdb-query.records
+      write_policy: direct-user-statement
+      atomic: true
+    fields:
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+      - path: brand.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要品牌身份，请提供品牌名称。
+      - path: brand.tone
+        required: false
+        question: 如果已有品牌语气或审美关键词，请提供它们。
+  preferences:
+    namespace: lov_wdb_query
+    fields:
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+  interaction:
+    ask_missing: true
+    max_questions: 1

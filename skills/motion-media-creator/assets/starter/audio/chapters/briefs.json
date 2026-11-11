@@ -1,0 +1,25 @@
+{
+ "_readme": "Per-chapter music brief for audio/gen_chapter_music.py. One mood line per chapter, keyed by the chapter ids in src/timeline.ts. The opening and the outro play the full-length track public/audio/bgm-full.wav when there is one (tools/music_bed.py); without it, add them here too. Follow the film's emotional curve and make neighbouring chapters differ: lead instruments, texture, energy. `common` is appended to every line. Replace every <...> before running: the script refuses placeholders.",
+ "_example": {
+  "common": "Modern cinematic hybrid score (orchestral plus electronic), the soundtrack of a precise industrial documentary about how a car is built.",
+  "calm": "Warm and intimate: felt piano motif over a soft muted pulse, light tape texture, quietly hopeful.",
+  "heavy": "Heavy industrial: big metallic hits on every downbeat, stomping percussion, low brass stabs, driving and powerful.",
+  "climax": "Climax: big uplifting full orchestra plus synths, powerful drums, triumphant but restrained, wide and grand, ending on a held chord."
+ },
+ "common": "Instrumental only, no vocals, no choir words, no spoken voice. 120 BPM, 4/4, steady tempo from the first beat, starts directly on a strong downbeat with the full groove (no long intro, no fade-in), clear audible beat throughout. <score style and the film in one line: subject and tone>. Leave space for a calm voice-over: no busy melody in the vocal range. Clean professional mix.",
+ "chapters": {
+  "neolithic": "<mood: lead instruments, texture, energy>",
+  "shang": "<mood: lead instruments, texture, energy>",
+  "warring": "<mood: lead instruments, texture, energy>",
+  "qin": "<mood: lead instruments, texture, energy>",
+  "han": "<mood: lead instruments, texture, energy>",
+  "split": "<mood: lead instruments, texture, energy>",
+  "tang": "<mood: lead instruments, texture, energy>",
+  "song": "<mood: lead instruments, texture, energy>",
+  "yuan": "<mood: lead instruments, texture, energy>",
+  "ming": "<mood: lead instruments, texture, energy>",
+  "qing": "<mood: lead instruments, texture, energy>",
+  "modern": "<mood: lead instruments, texture, energy>",
+  "today": "<mood: lead instruments, texture, energy>"
+ }
+}

@@ -1,0 +1,10 @@
+schema: lovstudio/pricing-card/v1
+version: "0.1.0"
+model: fixed
+currency: CNY
+list_price_cny: 0
+value_anchor: "用一次登录完成本地微信数据库密钥准备，免去手动查找和 SIP 改动。"
+basis: "随 lov-wdb-cli 付费包分发，不单独计价；原生 scanner 和 WDB Pro 逻辑属于现有产品资产。"
+boundary: "包含密钥扫描、登录捕获、管理副本写入和诊断；不包含聊天查询、跨设备导出或数据库修复。"
+review_trigger: "微信 4.1.10+ 登录捕获或 macOS task access 行为变化时复评。"
+confidence: internal

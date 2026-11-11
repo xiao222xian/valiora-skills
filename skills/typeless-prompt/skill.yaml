@@ -1,0 +1,64 @@
+schema: skill-manifest/v1
+id: lov-typeless-prompt
+version: "0.2.2"
+runtime: skill-runtime/v1
+context:
+  profile:
+    schema: user-profile/v1
+    source: shared-profile
+    read:
+      - user
+      - brand
+      - workspace
+      - preferences
+      - skills.lov-typeless-prompt
+    persist:
+      enabled: true
+      namespace: skills.lov-typeless-prompt
+      records_path: skills.lov-typeless-prompt.records
+      write_policy: direct-user-statement
+      atomic: true
+    fields:
+      - path: user.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要用户身份，请提供名称。
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+      - path: brand.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要品牌身份，请提供品牌名称。
+      - path: skills.lov-typeless-prompt.records.layout_preference
+        required: false
+        question: 希望默认使用怎样的排版密度？
+      - path: skills.lov-typeless-prompt.records.output_target
+        required: false
+        question: 默认输出主要发送给人还是 AI？
+      - path: skills.lov-typeless-prompt.records.author
+        required: false
+        question: 如需署名，使用哪个作者名称？
+  preferences:
+    namespace: lov_typeless_prompt
+    fields:
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+      - path: skills.lov-typeless-prompt.records.layout_preference
+        required: false
+        question: 希望默认使用怎样的排版密度？
+      - path: skills.lov-typeless-prompt.records.output_target
+        required: false
+        question: 默认输出主要发送给人还是 AI？
+  interaction:
+    ask_missing: true
+    max_questions: 1

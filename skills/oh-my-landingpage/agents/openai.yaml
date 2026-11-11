@@ -1,0 +1,7 @@
+interface:
+  display_name: "官网小能手"
+  short_description: "从品牌内核到上线验收，重构完整 Landing Page"
+  brand_color: "#F05A28"
+  default_prompt: "使用 $lov-oh-my-landingpage 从品牌内核、产品价值、内容、文案、UI 和真实转化链路重构这个 Landing Page；根据当前产品、用户与使用情境独立推导视觉风格，并把安装或分发方式保持在正确层级。"
+policy:
+  allow_implicit_invocation: true

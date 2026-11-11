@@ -1,0 +1,18 @@
+name: wdb-cli
+display_name: "万能微信秘钥"
+display_name_en: "Universal WeChat Key"
+version: "0.6.4"
+entrypoint: lov-wdb-cli
+modules:
+  - id: wdb-init
+    skill: lov-wdb-init
+    path: skills/wdb-init
+  - id: wdb-query
+    skill: lov-wdb-query
+    path: skills/wdb-query
+pipelines:
+  full:
+    - wdb-init
+    - wdb-query
+  query:
+    - wdb-query

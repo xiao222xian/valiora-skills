@@ -1,0 +1,10 @@
+schema: lovstudio/pricing-card/v1
+version: "0.9.1"
+model: one_time
+currency: CNY
+list_price_cny: 99
+value_anchor: "一条 2–4 分钟、带旁白字幕与事实核查的动态设计片：省去数天的工程搭建、流程与门禁摸索；外包同类片通常需要数千元起"
+basis: "官网一次性购买 1,394 Credits，与同系列视频制作 Skill 一致；位于成本底线与价值锚点之间：含可直接起步的工程模板、流水线门禁与真实案例"
+boundary: "包含片型语法、流水线与门禁、起步工程模板（含章节标题卡与字号下限）、分章配乐与卡点、旁白与混音、交付脚本；不包含 AI 配乐、TTS 等第三方服务费用、字体商用授权与人工代制作"
+review_trigger: "连续 10 次真实使用、版本大改、Remotion 主版本升级或支持成本明显变化时复评"
+confidence: medium

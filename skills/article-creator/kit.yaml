@@ -1,0 +1,49 @@
+name: article-creator
+display_name: "天才写手 · Genius Writer"
+version: "0.9.0"
+entrypoint: lov-article-creator
+modules:
+  - id: article-writing
+    skill: lov-article-writing
+    path: skills/article-writing
+  - id: editorial-template
+    skill: lov-editorial-template
+    path: skills/editorial-template
+  - id: body-figures
+    skill: lov-body-figures
+    path: skills/body-figures
+  - id: cover-package
+    skill: lov-cover-package
+    path: skills/cover-package
+  - id: quality-gate
+    skill: lov-quality-gate
+    path: skills/quality-gate
+pipelines:
+  full:
+    - article-writing
+    - editorial-template
+    - body-figures
+    - cover-package
+    - quality-gate
+  rewrite:
+    - article-writing
+    - editorial-template
+    - body-figures
+    - quality-gate
+  visual:
+    - cover-package
+    - quality-gate
+  figures:
+    - body-figures
+    - quality-gate
+  brand:
+    - editorial-template
+    - body-figures
+    - cover-package
+    - quality-gate
+  repost:
+    - editorial-template
+    - cover-package
+    - quality-gate
+  audit:
+    - quality-gate

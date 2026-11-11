@@ -1,0 +1,25 @@
+{
+ "_readme": "Cover background brief for tools/gen_cover_bg.py. The prompt is: subject + layouts[tone][ratio] + style + forbid. The picture carries no text at all: src/Cover.tsx sets the title, the English title, the seal and the logo on it. Write the subject as one concrete picture of what the film shows (objects, materials, setting, camera); the cover may only promise what the film shows. tone picks the ground of the title area and must equal COVER.tone in src/Cover.tsx: \"dark\" (near-black, light title; validated on 《如何打造一款特斯拉》 2026-10-12) or \"paper\" (the film's paper colour, dark ink title; for a paper or ink film; set the hex in layouts.paper to the film's ground colour, the same as Cover.tsx TONES.paper.bg). The layout lines keep the title area quiet: leave them unless Cover.tsx moves the title. Replace every <...> before running: the script refuses placeholders.",
+ "_example": {
+  "subject": "A dramatic exploded view of a sleek modern four-door electric sedan in a dark industrial studio. The polished car body floats at the top; beneath it, separated in precise vertical layers, hover the flat battery pack packed with hundreds of cylindrical battery cells, the compact electric drive motor, large single-piece cast aluminium underbody parts with ribbed structure, the four wheels and suspension. Thin glowing amber guide lines hint at how the parts assemble. Reflective black floor.",
+  "style": "Photoreal cinematic CGI, premium automotive advertising look, high detail, crisp metal and glass materials. Lighting: warm amber rim light (#E3B04B) against a cool steel-blue fill, light volumetric haze, deep blacks.",
+  "_note": "《如何打造一款特斯拉》 v0.5, 2026-10-12, tone dark: 2K 16:9 and 3:4, published on Bilibili and WeChat Channels."
+ },
+ "model": "openai/gpt-5.4-image-2",
+ "subject": "<the film's subject as one picture: what is in it, materials, setting, camera angle>",
+ "style": "<rendering and light, e.g. photoreal cinematic CGI or a flat graphic look; one accent colour from the film's palette (hex); deep blacks for tone dark, soft even light and pale shadows for tone paper>",
+ "forbid": "Absolutely no logos, no badges, no emblems, no text, no letters, no numbers, no watermark.",
+ "tone": "dark",
+ "layouts": {
+  "dark": {
+   "16:9": "Composition: the subject fills the right 60% of the frame; the left 40% fades into deep, almost black empty space (reserved for a title), with no bright details there.",
+   "4:3": "Composition: the whole subject fits inside the right 55% of the frame, smaller in frame with generous margins; the left 45% fades into deep, almost black empty space (reserved for a title), with no bright details there.",
+   "3:4": "Composition: portrait frame; the subject sits in the lower 60% of the frame; the top 40% is deep, almost black empty space (reserved for a title), with no bright details there."
+  },
+  "paper": {
+   "16:9": "Composition: the subject fills the right 60% of the frame; the left 40% fades into plain, quiet off-white paper-toned empty space (about #EEE7D8, reserved for a title), with no dark or busy details there.",
+   "4:3": "Composition: the whole subject fits inside the right 55% of the frame, smaller in frame with generous margins; the left 45% fades into plain, quiet off-white paper-toned empty space (about #EEE7D8, reserved for a title), with no dark or busy details there.",
+   "3:4": "Composition: portrait frame; the subject sits in the lower 60% of the frame; the top 40% is plain, quiet off-white paper-toned empty space (about #EEE7D8, reserved for a title), with no dark or busy details there."
+  }
+ }
+}

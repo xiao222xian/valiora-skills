@@ -1,0 +1,14 @@
+{
+  "_comment": "Merged into the base starter's package.json by scripts/bootstrap_3d.py. Exact versions, checked together on 2026-10-12: postprocessing 6.39.5 caps three below 0.187 (6.38 allowed only three < 0.182 and rendered black), @react-three/fiber 9.8.1 caps React below 19.4, @remotion/three must equal the base's remotion version.",
+  "dependencies": {
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.1",
+    "@react-three/postprocessing": "3.2.0",
+    "@remotion/three": "4.0.534",
+    "postprocessing": "6.39.5",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0"
+  }
+}

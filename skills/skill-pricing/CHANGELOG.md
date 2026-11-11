@@ -1,0 +1,25 @@
+# Changelog
+
+## [0.2.2] - 2026-09-07
+
+### Added
+
+- 统一展示名为「Skill 定价师」，保持调用 ID 与能力契约。
+
+## [0.2.1] - 2026-08-26
+
+### Changed
+
+- require Credits-only pricing across LovStudio product surfaces while keeping fiat values inside recharge flows or channel-specific execution records
+
+## [0.2.0] - 2026-08-24
+
+### Added
+
+- add the shared feedback-classification and approval-invalidation gate used by every LovStudio Skill
+
+## 0.1.0
+
+- 新建基于 Skill Pricing Card 的单一指令型定价 Skill。
+- 纳入创作者时间成本、维护成本、用户价值、稀缺性、购买信心、生态飞轮、渠道形态和证据缺口。
+- 完成本地源码校验与 Agent 安装链接。

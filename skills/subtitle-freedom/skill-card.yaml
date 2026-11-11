@@ -1,0 +1,108 @@
+schema: lovstudio/skill-card/v1
+version: "1.3.1"
+display_name_zh: "人人字幕"
+display_name_en: "Subtitle Freedom"
+description: "为视频或英文字幕生成以学习者选定水平为最低难度线的英语学习字幕，覆盖该级别及以上真正妨碍理解的词汇、习语、俚语、文化表达和复杂句子，并可选生成叙事安全的 ASS 人物艺术层。"
+owner:
+  team: "手工川工作室 Agent 字幕组"
+  contact: "LovStudio Skills catalog"
+license:
+  name: MIT
+  terms: "用户提供自己的视频或字幕；Skill 只处理输入，不随包分发电影内容。"
+  url: "LICENSE"
+use_case:
+  audience: "需要借助电影字幕学习英语的中文学习者，以及需要可复查字幕产物的创作者。"
+  scenario: "输入视频或原字幕文件与 learner Profile，生成保留时间轴的学习字幕；艺术层只有在用户明确开启后生成。"
+  tasks:
+    - "选择必要的生僻词、术语、固定搭配、习语或谚语"
+    - "解释俚语、文化表达和无法从字面推断的语境义"
+    - "在必要时为复杂句子提供短句意，而不是整段翻译"
+    - "可选地用字幕、语义、联网资料和局部视频证据生成首次有意义出场的人物卡"
+deployment:
+  geography: global
+  environments:
+    - "Python 3.8+"
+    - "FFmpeg/FFprobe for video input"
+    - "UTF-8 SRT, VTT, ASS, or SSA subtitle input"
+requirements:
+  credentials: "可选联网检索；普通字幕注释不要求凭据。"
+  dependencies:
+    - "Python standard library"
+    - "FFmpeg/FFprobe when input is video or non-SRT subtitle"
+  runtime:
+    - "learner Profile such as CET4, A2, B1, B2, or CET6"
+risks:
+  - risk: "如果把所有生词或整句对白都标出来，字幕会变得拥挤，学习者反而抓不到重点。"
+    mitigation: "按 Profile 和上下文筛选必要语言单元，限制每条 cue 的解释密度，并优先首次出现。"
+  - risk: "人物视觉首次出现、字幕首次提名和身份真正明确的时间可能不同，人物卡过早出现会剧透。"
+    mitigation: "分开记录 literal、semantic、visual 和 identity evidence；默认 identity_after，人物卡总开关默认关闭。"
+  - risk: "ASS 播放器对字体、定位和水印锚点的支持不同。"
+    mitigation: "保持优雅克制的默认样式，使用固定底部中心锚点，并运行布局回归检查。"
+  - risk: "字幕或电影内容可能受版权保护。"
+    mitigation: "要求用户提供有权处理的文件；只输出用户请求的字幕加工结果，不重新分发原片。"
+references:
+  - title: "Runtime workflow"
+    path: "SKILL.md"
+  - title: "Learner Profile and glossary contract"
+    path: "references/level-profiles.md"
+  - title: "Character evidence policy"
+    path: "references/character-cards.md"
+  - title: "ASS art text and renderer rules"
+    path: "references/ass-art-text.md"
+output:
+  types:
+    - "file"
+  formats:
+    - "SRT"
+    - "ASS/SSA when artistic layer is explicitly enabled"
+  parameters:
+    - "Original cue IDs and timestamps remain unchanged for SRT"
+    - "Profile-floor annotations keep the selected level and higher levels, only when necessary"
+    - "Character cards and watermark are opt-in art-layer settings"
+  validation:
+    - "Compare source and output cue IDs, timestamps, and cue count"
+    - "Run UTF-8, bracket-balance, density, and FFmpeg parser checks"
+    - "Keep literal, semantic, visual, and identity evidence separately auditable"
+  description: "Primary output is an adjacent or explicitly requested SRT; an optional ASS file carries scene cards, character cards, and the custom watermark."
+ethical_considerations: "用户应确认自己有权处理输入视频和字幕。人物解释只使用影片已呈现或用户允许检索的内容，不编造身份、不提前泄露后续剧情，也不把私人信息写入字幕。"
+dimensions:
+  - id: correctness
+    label: "语义正确性"
+    description: "解释以字幕上下文和 Profile 为依据，区分字面义、语境义与人物证据时间。"
+    evidence: "Glossary JSON、cue 时间轴校验、character_evidence.py 输出和 unresolved report。"
+    score: 4
+  - id: learning_effectiveness
+    label: "学习有效性"
+    description: "重点覆盖真正阻碍理解的词、习语、俚语、文化表达与复杂句，而不是追求注释数量。"
+    evidence: "CET4《指环王》真实案例：输入英文 SRT，输出必要解释与可回看的成品截图。"
+    score: 4
+  - id: narrative_safety
+    label: "叙事安全"
+    description: "普通 SRT 不增加画面艺术层；人物卡只有用户显式开启，并默认在身份明确后显示。"
+    evidence: "skill.yaml 的 character_cards=false、character_card_mode=identity_after 与 SKILL.md 默认策略。"
+    score: 4
+  - id: renderer_compatibility
+    label: "播放器兼容性"
+    description: "ASS 艺术字使用可审计的样式、锚点、描边和水印布局，减少播放器重解释造成的漂移。"
+    evidence: "test_watermark_layout.py 与 ASS parser smoke test。"
+    score: 4
+  - id: efficiency
+    label: "交付效率"
+    description: "优先文字搜索和语义证据，只对候选窗口做局部视频抽样，而不是逐帧扫描整部电影。"
+    evidence: "character_evidence.py 的 literal/semantic pass 与可选 contact sheet。"
+    score: 4
+pricing:
+  model: one_time
+  currency: CNY
+  list_price_cny: 0.99
+  basis: "按一次可复用的字幕加工工作流定价：包含 Profile 筛选、必要语言单元判断、SRT 校验，以及显式开启时的 ASS 艺术层规则。"
+  boundary: "不包含电影版权内容、不替用户完成未授权媒体获取、不保证没有输入字幕的语音识别，也不把人物卡默认加入普通 SRT。"
+  review_trigger: "当新增稳定输出格式、跨播放器回归证据、批量处理能力或分发渠道发生变化时复评价格。"
+  confidence: medium
+distribution:
+  paid:
+    - workbuddy
+    - skillpay
+  free:
+    - github
+    - lovstudio

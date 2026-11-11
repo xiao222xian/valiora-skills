@@ -1,0 +1,82 @@
+schema: lovstudio/skill-card/v1
+version: "0.1.0"
+description: "在 macOS 上为本机微信准备 WDB Pro 管理的 SQLCipher 密钥，支持内存扫描与微信 4.1.10+ 登录期捕获，输出私有密钥清单。"
+owner:
+  team: WDB Pro Team
+  contact: https://github.com/lovstudio/wdb-pro/issues
+license:
+  name: MIT
+  terms: "可随 lov-wdb-cli 分发；原生 scanner 保留第三方 Apache-2.0 和 MIT 声明。"
+  url: ../LICENSE
+use_case:
+  audience: "macOS 微信用户和 Agent 工作流"
+  scenario: "本机没有可读取的数据库密钥，或微信升级后需要重新连接本地数据"
+  tasks:
+    - "扫描运行中微信的现有数据库密钥"
+    - "微信 4.1.10+ 登录时捕获并派生密钥"
+    - "写入 WDB Pro 私有管理副本"
+deployment:
+  geography: global
+  environments:
+    - "macOS 10.15+"
+    - "Apple Silicon 与 Intel Mac"
+requirements:
+  credentials: none
+  dependencies:
+    - "wechat-key-scanner arm64/x86_64"
+    - "codesign"
+  runtime:
+    - "Python 3.9+"
+risks:
+  - risk: "密钥是本地隐私数据"
+    mitigation: "只写私有 0600 文件，不打印密钥值，清理临时副本。"
+  - risk: "微信版本或签名变化导致 task access 失败"
+    mitigation: "doctor 自检、明确错误码，并通过临时可调试副本避免要求关闭 SIP。"
+  - risk: "退出微信后用户忘记重新登录"
+    mitigation: "capture 会等待登录并保留原始微信恢复步骤。"
+references:
+  - title: Primary Skill instructions
+    path: SKILL.md
+output:
+  types:
+    - managed-keys
+  formats:
+    - JSON
+  parameters:
+    - account
+    - databaseCount
+    - managedKeys
+  validation:
+    - status ready
+    - databaseCount greater than zero
+    - no key value in output
+  description: "WDB Pro managed key JSON plus account and verification metadata."
+ethical_considerations: "仅在用户明确要求的本机数据访问中扫描进程或捕获登录；不修改已安装微信，不跨设备共享密钥。"
+dimensions:
+  - id: correctness
+    label: Correctness
+    description: "生成的路径、密钥和 cipher compatibility 正确，且拒绝越界路径。"
+    evidence: "单元测试覆盖解析、密钥格式与路径穿越拒绝；doctor 自检通过。"
+    score: null
+  - id: effectiveness
+    label: Effectiveness
+    description: "用户能在无密钥状态下完成初始化并进入查询。"
+    evidence: "当前微信 4.1.11 真实环境诊断：requiresLoginCapture true，capture 路径待用户登录验证。"
+    score: null
+  - id: efficiency
+    label: Efficiency
+    description: "只读取数据库第一页用于校验，不复制整库或修改共享内存。"
+    evidence: "snapshot_encrypted_pages 只暂存 4096 字节首页。"
+    score: null
+pricing:
+  model: fixed
+  currency: CNY
+  list_price_cny: 0
+  basis: "随 lov-wdb-cli 付费包分发，不单独计价。"
+  boundary: "包含密钥发现、登录捕获、管理副本写入和诊断；不包含聊天查询或跨设备导出。"
+  review_trigger: "微信 4.1.10+ 捕获流程出现兼容变化时复评。"
+  confidence: internal
+distribution:
+  paid:
+    - lovstudio
+  free: []

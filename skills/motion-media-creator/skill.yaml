@@ -1,0 +1,73 @@
+schema: skill-manifest/v1
+id: lov-motion-media-creator
+version: "0.9.1"
+runtime: skill-runtime/v1
+context:
+  profile:
+    schema: user-profile/v1
+    source: shared-profile
+    read:
+      - user
+      - brand
+      - workspace
+      - preferences
+      - skills.lov-motion-media-creator
+    persist:
+      enabled: true
+      namespace: skills.lov-motion-media-creator
+      records_path: skills.lov-motion-media-creator.records
+      write_policy: direct-user-statement
+      atomic: true
+    fields:
+      - path: user.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要用户身份，请提供名称。
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+      - path: brand.name
+        aliases:
+          - identity.name
+        required: false
+        question: 如果本次输出需要品牌身份，请提供品牌名称。
+      - path: brand.site
+        required: false
+        question: 如果需要品牌官网，请提供地址。
+      - path: brand.tone
+        required: false
+        question: 如果已有品牌语气或审美关键词，请提供它们。
+      - path: skills.lov-motion-media-creator.records.brand_name
+        required: false
+        question: 这类片子署名用哪个品牌？
+      - path: skills.lov-motion-media-creator.records.brand_logo
+        required: false
+        question: 片尾与封面用的官方 Logo 文件在哪里？
+      - path: skills.lov-motion-media-creator.records.seal_asset
+        required: false
+        question: 片头片尾的品牌印章用哪套资产？没有时用占位印章并提醒。
+      - path: skills.lov-motion-media-creator.records.default_aspect
+        required: false
+        question: 默认出哪种画幅？（只出 16:9、只出 9:16，或两版同出）
+      - path: skills.lov-motion-media-creator.records.narration
+        required: false
+        question: 旁白用 TTS 还是你的真人原声（可逐句替换）？
+      - path: workspace.output_dir
+        required: false
+        question: 成片与报告输出到哪个目录？
+  preferences:
+    namespace: lov_motion_media_creator
+    fields:
+      - path: user.language
+        required: false
+        question: 希望使用哪种语言输出？
+      - path: user.timezone
+        required: false
+        question: 需要使用哪个时区处理日期和时间？
+  interaction:
+    ask_missing: true
+    max_questions: 1

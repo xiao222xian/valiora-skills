@@ -1,0 +1,8 @@
+schema: lovstudio/pricing-card/v1
+version: 0.1.1
+model: channel_managed
+value_anchor: 让 Agent 直接检索和导出微探文章缓存。
+basis: 价格由官网发布流程维护，源码不包含渠道价格。
+boundary: 包含本地命令与匹配引擎，不含账号或托管服务。
+review_trigger: 新增托管资源、维护成本或分发许可时重新评估。
+confidence: internal

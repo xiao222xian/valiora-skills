@@ -1,0 +1,865 @@
+#!/usr/bin/env python3
+"""
+Audit a LovStudio/Agent Skill against repo conventions and portability rules.
+
+Usage:
+    python lint_skill.py <skill-name>           # e.g. any2pdf or lov-any2pdf
+    python lint_skill.py <skill-name> --json
+    python lint_skill.py --path /abs/path/to/skills/lov-any2pdf
+
+The linter is deliberately dependency-free and works with a standalone skill
+directory, an installed copy, or a skill nested in a catalog repository.
+Outputs findings with severity (error/warn/info) and a `fix_hint` field.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+SEVERITIES = ("error", "warn", "info")
+
+FRONTMATTER_REQUIRED = ["name", "description", "license", "compatibility", "metadata"]
+METADATA_REQUIRED = ["author", "version", "tags"]
+STANDARD_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
+AUDIENCE_ACTION_RE = re.compile(
+    r"\b(?:create|generate|write|edit|polish|proofread|typeset|render|publish|package)\b|"
+    r"创建|生成|撰写|写成|编辑|润色|审校|排版|渲染|发布|打包|制作|创作",
+    re.I,
+)
+# Bare report/document/copy (报告/文档) mostly name status output, documentation
+# links or file copies, so only their authored-content forms count.
+AUDIENCE_ARTIFACT_RE = re.compile(
+    r"\b(?:posters?|articles?|flyers?|decks?|slides|copywriting|(?:marketing|ad|sales|brand) copy|proposals?|"
+    r"(?:research|analysis) reports?|pdfs?|infographics?|business cards?|blog posts?|landing pages?|"
+    r"newsletters?|press releases?|thesis|theses|dissertations?)\b|海报|文章|文案|策划案|(?:研究|调研|分析|行业)报告|"
+    r"幻灯片|演示文稿|信息图|名片|推文|博客|落地页|新闻稿|通稿|口播稿|讲稿|论文",
+    re.I,
+)
+# Sections that never describe this Skill's own output: the shared feedback
+# gate, runtime/profile plumbing copied from the Skill template, and negative
+# triggers. Every LovStudio Skill carries the feedback gate, so its "发布" would
+# otherwise satisfy the action half of the branding heuristic for any Skill.
+NON_OUTPUT_SECTION_RE = re.compile(
+    r"^(#{2,6})\s+(?:通用反馈闭环|Do not activate when|User Profile(?: \(cross-session\))?|"
+    r"Runtime context(?: \(shared\))?|Runtime Context and Profile|User Configuration|Execution boundary|"
+    r"(?:Skill Group )?Composition)\s*$",
+    re.I | re.M,
+)
+FENCED_CODE_RE = re.compile(r"```.*?```", re.S)
+INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+# Skill IDs such as lov-publish-wechat-article name a neighbour, not this output.
+KEBAB_IDENTIFIER_RE = re.compile(r"\b[a-z0-9]+(?:-[a-z0-9]+)+\b")
+NON_INTERACTIVE_PHRASES = (
+    "fully automatic",
+    "no interactive",
+    "non-interactive",
+    "do not ask the user",
+    "非交互",
+    "无需交互",
+    "全自动",
+    "不询问用户",
+    "不向用户提问",
+    "不主动提问",
+)
+USER_CONFIG_CUES = (
+    "## User Configuration",
+    "## 用户配置",
+    "user-config.md",
+    "SKILL_PROFILE_PATH",
+    "SKILLS_CONFIG_DIR",
+    "SKILL_WORKSPACE_ROOT",
+    "SKILL_OUTPUT_DIR",
+    "SKILL_PROFILE_PATH",
+    "SKILL_DESIGN_GUIDE",
+    "SKILL_MAINTAIN_PARTNERS_SITE_ROOT",
+    "SKILL_MAINTAIN_PARTNERS_FILE",
+    "AGENT_SKILLS_DIR",
+    "CLAUDE_SKILLS_DIR",
+    "CODEX_SKILLS_DIR",
+    "SKILLS_DIR",
+    "LOV_SKILL_CATALOG_ROOT",
+    # Legacy cues accepted during migration.
+    "AGENT_SKILL_PROFILE",
+    "SKILL_SKILL_PROFILE",
+    "PARTNERS_SITE_ROOT",
+    "PARTNERS_FILE",
+)
+USER_PATH_PATTERN = r"/" + r"Users" + r"/[^/\s]+(?:/|\b)"
+LOCAL_PATH_PATTERNS = (
+    ("LOCAL_USER_PATH", re.compile(USER_PATH_PATTERN), "user home path"),
+    ("LOCAL_LOVSTUDIO_PATH", re.compile(r"(?<![A-Za-z0-9_])~/?lovstudio(?:/|\b)|\$HOME/lovstudio(?:/|\b)"), "~/lovstudio"),
+    ("LOCAL_CLAUDE_PATH", re.compile(r"~/\.claude|/\.claude/skills|\$HOME/\.claude"), "~/.claude"),
+    ("LOCAL_AGENTS_PATH", re.compile(r"~/\.agents|/\.agents/skills|\$HOME/\.agents"), "~/.agents"),
+    ("CLIENT_PLUGIN_ENV", re.compile(r"CLAUDE_PLUGIN_ROOT"), "CLAUDE_PLUGIN_ROOT"),
+)
+NEGATIVE_LOCAL_PATH_CONTEXT_RE = re.compile(
+    r"must not assume|do not hard-?code|not require|should not require|avoid hard-?coded|"
+    r"without assuming|move user-specific paths",
+    re.I,
+)
+
+
+def has_required_local_path(text: str, pattern: re.Pattern) -> bool:
+    for line in text.splitlines():
+        if not pattern.search(line):
+            continue
+        if NEGATIVE_LOCAL_PATH_CONTEXT_RE.search(line):
+            continue
+        return True
+    return False
+
+
+def looks_like_skills_root(path: Path) -> bool:
+    if not path.exists() or not path.is_dir():
+        return False
+    try:
+        for child in path.iterdir():
+            if child.is_dir() and ((child / "SKILL.md").exists() or (child / "src" / "SKILL.md").exists()):
+                return True
+            if child.is_dir() and child.name.endswith("-skill") and (
+                (child / "SKILL.md").exists() or (child / "src" / "SKILL.md").exists()
+            ):
+                return True
+    except OSError:
+        return False
+    return False
+
+
+def find_repo_root(start: Path) -> Path:
+    for p in [start] + list(start.parents):
+        if looks_like_skills_root(p):
+            return p
+        if (p / "skills.yaml").exists() and (p / "skills").is_dir():
+            return p
+        if (p / "CLAUDE.md").exists() and (p / "skills").is_dir():
+            return p
+    return start
+
+
+def resolve_skill_dir(name: str, path: str | None) -> Path:
+    if path:
+        return Path(path).resolve()
+    raw = name
+    name = name.removeprefix("lov-")
+    if name.endswith("-skill"):
+        name = name[: -len("-skill")]
+    root = find_repo_root(Path.cwd())
+    candidates = [
+        root / f"{name}-skill",
+        root / f"lov-{name}",
+        root / name,
+        root / "skills" / f"lov-{name}",
+        root / "skills" / name,
+        root / "skills" / f"{name}-skill",
+        root / raw,
+    ]
+    for c in candidates:
+        if (c / "SKILL.md").exists() or (c / "src" / "SKILL.md").exists():
+            return c.resolve()
+    return candidates[0].resolve()
+
+
+def discover_skill_dirs(root: Path) -> list[Path]:
+    dirs = []
+    ignored = {".git", ".worktrees", "node_modules", "dist", "build", "target", ".venv", "__pycache__"}
+    for skill_md in root.rglob("SKILL.md"):
+        parts = set(skill_md.parts)
+        if parts.intersection(ignored):
+            continue
+        if skill_md.parent.name in {"src", "public"} and (skill_md.parent.parent / "skill.yaml").exists():
+            dirs.append(skill_md.parent.parent)
+        else:
+            dirs.append(skill_md.parent)
+    if (root / "SKILL.md").exists():
+        dirs.append(root)
+    return sorted(set(dirs))
+
+
+def canonical_skill_md(skill_dir: Path) -> Path:
+    """Return the authored Skill spec, including paid/encrypted repo layouts."""
+    root_spec = skill_dir / "SKILL.md"
+    if root_spec.exists():
+        return root_spec
+    source_spec = skill_dir / "src" / "SKILL.md"
+    if source_spec.exists():
+        return source_spec
+    return root_spec
+
+
+def read_manifest_fields(path: Path) -> dict[str, str]:
+    """Read the small top-level scalar subset needed from skill.yaml.
+
+    A full YAML dependency would make the maintenance skill harder to install.
+    Nested metadata is already represented in SKILL.md, so the manifest audit
+    intentionally checks only top-level id/version values.
+    """
+    if not path.exists():
+        return {}
+    fields: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = re.match(r"^(id|version):\s*(.+?)\s*$", line)
+        if not match:
+            continue
+        fields[match.group(1)] = match.group(2).strip().strip('"').strip("'")
+    return fields
+
+
+def runtime_manifest(skill_dir: Path) -> Path:
+    """Return the skill.yaml governing skill_dir; embedded Kit modules run under their Kit's."""
+    own = skill_dir / "skill.yaml"
+    kit = skill_dir.parent.parent
+    if (
+        not own.exists()
+        and skill_dir.parent.name == "skills"
+        and (kit / "skill.yaml").exists()
+        and canonical_skill_md(kit).exists()
+    ):
+        return kit / "skill.yaml"
+    return own
+
+
+def read_interaction_policy(path: Path) -> dict[str, str]:
+    """Return the skill-runtime/v1 `interaction` scalars declared in skill.yaml."""
+    if not path.exists():
+        return {}
+    policy: dict[str, str] = {}
+    indent = None
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if indent is None:
+            match = re.match(r"^(\s*)interaction:\s*$", line)
+            if match:
+                indent = len(match.group(1))
+            continue
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        child = re.match(r"^(\s*)([A-Za-z_][\w-]*):\s*(.*?)\s*$", line)
+        if not child or len(child.group(1)) <= indent:
+            break
+        if child.group(2) in ("ask_missing", "max_questions"):
+            policy[child.group(2)] = child.group(3)
+    return policy
+
+
+def strip_sections(text: str, heading_re: re.Pattern) -> str:
+    """Drop each section whose heading matches, up to the next heading of the same or higher level."""
+    kept: list[str] = []
+    pos = 0
+    for match in heading_re.finditer(text):
+        if match.start() < pos:
+            continue
+        kept.append(text[pos : match.start()])
+        next_heading = re.compile(r"^#{1,%d}\s" % len(match.group(1)), re.M).search(text, match.end())
+        pos = next_heading.start() if next_heading else len(text)
+    kept.append(text[pos:])
+    return "".join(kept)
+
+
+def audience_output_evidence(description: str, body: str) -> tuple[str, str] | None:
+    """Return the action and artifact words suggesting audience-visible authored output."""
+    body = strip_sections(FENCED_CODE_RE.sub(" ", body), NON_OUTPUT_SECTION_RE)
+    sample = KEBAB_IDENTIFIER_RE.sub(" ", INLINE_CODE_RE.sub(" ", f"{description}\n{body[:4000]}"))
+    action = AUDIENCE_ACTION_RE.search(sample)
+    artifact = AUDIENCE_ARTIFACT_RE.search(sample)
+    if action and artifact:
+        return action.group(0), artifact.group(0)
+    return None
+
+
+def parse_frontmatter(text: str) -> tuple[dict, str]:
+    """Naive YAML frontmatter parser — enough for lint purposes."""
+    if not text.startswith("---"):
+        return {}, text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return {}, text
+    fm_block = text[3:end].strip("\n")
+    body = text[end + 4 :].lstrip("\n")
+    data: dict = {}
+    current_key = None
+    buf: list[str] = []
+    for line in fm_block.splitlines():
+        if not line.strip():
+            continue
+        m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$", line)
+        if m and not line.startswith((" ", "\t")):
+            if current_key is not None:
+                data[current_key] = "\n".join(buf).strip() if buf else data.get(current_key, "")
+            current_key = m.group(1)
+            val = m.group(2).strip()
+            buf = []
+            if val in (">", "|", ">-", "|-"):
+                data[current_key] = ""
+            elif val == "":
+                data[current_key] = {}  # likely nested
+            else:
+                data[current_key] = val.strip('"').strip("'")
+                current_key = None
+        elif current_key and line.startswith((" ", "\t")):
+            stripped = line.strip()
+            # nested key under metadata
+            m2 = re.match(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$", stripped)
+            if m2 and isinstance(data.get(current_key), dict):
+                data[current_key][m2.group(1)] = m2.group(2).strip().strip('"').strip("'")
+            else:
+                buf.append(stripped)
+    if current_key is not None and buf:
+        if isinstance(data.get(current_key), str) and data[current_key] == "":
+            data[current_key] = "\n".join(buf).strip()
+    return data, body
+
+
+class Linter:
+    def __init__(self, skill_dir: Path):
+        self.dir = skill_dir
+        dir_name = skill_dir.name
+        short = dir_name
+        if short.endswith("-skill"):
+            short = short[: -len("-skill")]
+        short = short.removeprefix("lov-")
+        self.name = short
+        self.expected_standard_name = f"lov-{short}"
+        self.findings: list[dict] = []
+
+    def add(self, severity: str, code: str, message: str, fix_hint: str = "", file: str = ""):
+        self.findings.append(
+            {
+                "severity": severity,
+                "code": code,
+                "message": message,
+                "fix_hint": fix_hint,
+                "file": file,
+            }
+        )
+
+    # --- Checks ---
+
+    def check_structure(self):
+        if not self.dir.exists():
+            self.add("error", "DIR_MISSING", f"Skill directory not found: {self.dir}")
+            return
+        source_dir_ok = self.dir.name == self.name or self.dir.name == f"{self.name}-skill" or self.dir.name == self.expected_standard_name
+        if not source_dir_ok or not STANDARD_NAME_RE.match(self.dir.name.removesuffix("-skill")):
+            self.add(
+                "warn",
+                "DIR_NONSTANDARD",
+                f"Directory '{self.dir.name}' is not in a recognized source/install format",
+                "Use <name>-skill for source repos or lov-<name> for installed/distributed dirs",
+            )
+        required_files = (("SKILL.md", canonical_skill_md(self.dir)), ("README.md", self.dir / "README.md"))
+        for required, f in required_files:
+            if not f.exists():
+                self.add(
+                    "error",
+                    f"MISSING_{required.split('.')[0]}",
+                    f"{required} is missing",
+                    f"Create {required} using the templates in skill-creator references",
+                    file=required,
+                )
+
+    def check_skill_md(self):
+        path = canonical_skill_md(self.dir)
+        if not path.exists():
+            return
+        rel = path.relative_to(self.dir).as_posix()
+        text = path.read_text(encoding="utf-8")
+        fm, body = parse_frontmatter(text)
+        frontmatter = text[: text.find("\n---", 3) + 4] if text.startswith("---") and text.find("\n---", 3) >= 0 else ""
+
+        for key in FRONTMATTER_REQUIRED:
+            if key not in fm:
+                self.add(
+                    "error",
+                    "FM_MISSING_FIELD",
+                    f"SKILL.md frontmatter missing required field '{key}'",
+                    f"Add '{key}:' to frontmatter",
+                    file=rel,
+                )
+
+        name = fm.get("name", "")
+        if name and not STANDARD_NAME_RE.match(name):
+            self.add(
+                "error",
+                "FM_NAME_INVALID",
+                f"frontmatter name '{name}' is not Agent Skills-compatible",
+                f"Use name: {self.expected_standard_name}",
+                file=rel,
+            )
+        elif name and name != self.expected_standard_name:
+            self.add(
+                "warn",
+                "FM_NAME_MISMATCH",
+                f"frontmatter name '{name}' does not match standard expected name '{self.expected_standard_name}'",
+                f"Set name: {self.expected_standard_name} or document why this is author-only",
+                file=rel,
+            )
+
+        desc = fm.get("description", "") or ""
+        if isinstance(desc, str):
+            if len(desc) < 80:
+                self.add(
+                    "warn",
+                    "FM_DESC_TOO_SHORT",
+                    "description is shorter than 80 chars — likely missing trigger info",
+                    "Expand description to cover: what it does + when to trigger + specific user phrases",
+                    file=rel,
+                )
+            if "trigger" not in desc.lower() and "mention" not in desc.lower() and "use when" not in desc.lower():
+                self.add(
+                    "warn",
+                    "FM_DESC_NO_TRIGGER",
+                    "description lacks explicit trigger cues (e.g. 'Use when...', 'trigger when user mentions...')",
+                    "Add 'Use when ...' and 'Also trigger when the user mentions \"...\"' phrases",
+                    file=rel,
+                )
+
+        meta = fm.get("metadata")
+        if isinstance(meta, dict):
+            for k in METADATA_REQUIRED:
+                if k not in meta:
+                    self.add(
+                        "warn",
+                        "FM_META_FIELD",
+                        f"metadata.{k} missing",
+                        f"Add metadata.{k}",
+                        file=rel,
+                    )
+            version = meta.get("version", "")
+            if version and not SEMVER_RE.match(version):
+                self.add(
+                    "warn",
+                    "FM_VERSION_FORMAT",
+                    f"metadata.version '{version}' is not semver x.y.z",
+                    "Use semver format like 0.1.0",
+                    file=rel,
+                )
+
+        self.check_version_sources(fm, rel)
+
+        audience_evidence = audience_output_evidence(str(fm.get("description", "") or ""), body)
+        if audience_evidence and "lov-branding-consistency" not in frontmatter:
+            action, artifact = audience_evidence
+            self.add(
+                "warn",
+                "MISSING_BRANDING_DEP",
+                f"audience-visible authored output (matched '{action}' + '{artifact}') "
+                "lacks the lov-branding-consistency dependency",
+                "Add lov-branding-consistency to top-level depends_on; preserve quoted/source text verbatim",
+                file=rel,
+            )
+
+        # Body checks
+        if re.search(r"TODO:\s", body) or "TODO_CN" in body or "TODO_EN" in body:
+            self.add(
+                "error",
+                "BODY_TODO",
+                "SKILL.md body still contains TODO placeholders",
+                "Replace all TODOs with real content",
+                file=rel,
+            )
+        declared_text = f"{fm.get('description', '')}\n{body}".lower()
+        non_interactive = any(phrase in declared_text for phrase in NON_INTERACTIVE_PHRASES)
+        # skill-runtime/v1 hosts ask for missing declared context within
+        # interaction.max_questions, so the body need not name a host tool.
+        interaction_declared = bool(read_interaction_policy(runtime_manifest(self.dir)))
+        if (
+            "AskUserQuestion" not in body
+            and "## Workflow" in body
+            and not non_interactive
+            and not interaction_declared
+        ):
+            self.add(
+                "info",
+                "BODY_NO_ASKUSER",
+                "Workflow does not mention AskUserQuestion — interactive skills should collect options before running",
+                "Add an 'Ask the user' step (e.g. AskUserQuestion), declare context.interaction in skill.yaml, "
+                "or state that the workflow is non-interactive",
+                file=rel,
+            )
+        if len(body.splitlines()) > 500:
+            self.add(
+                "warn",
+                "BODY_TOO_LONG",
+                "SKILL.md body exceeds 500 lines — consider progressive disclosure",
+                "Split long sections to references/ and link from SKILL.md",
+                file=rel,
+            )
+
+    def check_version_sources(self, fm: dict, skill_rel: str):
+        """Ensure README, SKILL.md, skill.yaml and the cards do not advertise different versions."""
+        versions: dict[str, str] = {}
+        readme = self.dir / "README.md"
+        if readme.exists():
+            match = re.search(
+                r"!\[Version\]\(https://img\.shields\.io/badge/version-(\d+\.\d+\.\d+)-[A-Za-z0-9]+\)",
+                readme.read_text(encoding="utf-8", errors="replace"),
+            )
+            if match:
+                versions["README.md"] = match.group(1)
+
+        if fm.get("version"):
+            versions[f"{skill_rel} version"] = str(fm["version"])
+
+        metadata = fm.get("metadata")
+        if isinstance(metadata, dict) and metadata.get("version"):
+            versions[f"{skill_rel} metadata.version"] = str(metadata["version"])
+
+        public_spec = self.dir / "public" / "SKILL.md"
+        if public_spec.exists():
+            public_fm, _ = parse_frontmatter(public_spec.read_text(encoding="utf-8", errors="replace"))
+            if public_fm.get("version"):
+                versions["public/SKILL.md version"] = str(public_fm["version"])
+
+        encrypted_versions: list[tuple[str, str]] = []
+        for manifest_rel in ("public/MANIFEST.enc.json", "dist/MANIFEST.enc.json"):
+            encrypted_manifest = self.dir / manifest_rel
+            if not encrypted_manifest.exists():
+                continue
+            try:
+                encrypted_data = json.loads(encrypted_manifest.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                self.add(
+                    "error",
+                    "ENC_MANIFEST_INVALID",
+                    f"{manifest_rel} is not valid JSON",
+                    "Regenerate the encrypted distribution bundle",
+                    file=manifest_rel,
+                )
+                continue
+            if encrypted_data.get("skill_version"):
+                encrypted_versions.append((manifest_rel, str(encrypted_data["skill_version"])))
+
+        manifest = read_manifest_fields(self.dir / "skill.yaml")
+        if manifest.get("version"):
+            versions["skill.yaml"] = manifest["version"]
+        # A card without a top-level version is fine; a declared one must match.
+        for card in ("skill-card.yaml", "pricing-card.yaml"):
+            card_version = read_manifest_fields(self.dir / card).get("version")
+            if card_version:
+                versions[card] = card_version
+        for source, version in versions.items():
+            if not SEMVER_RE.match(version):
+                self.add(
+                    "warn",
+                    "VERSION_INVALID",
+                    f"{source} advertises non-semver version '{version}'",
+                    "Use semver format x.y.z",
+                    file=source,
+                )
+        unique = set(versions.values())
+        if len(unique) > 1:
+            detail = ", ".join(f"{source}={version}" for source, version in versions.items())
+            self.add(
+                "error",
+                "VERSION_DRIFT",
+                f"version sources are inconsistent: {detail}",
+                "Run bump_version.py with --path so README.md, SKILL.md, skill.yaml, skill-card.yaml "
+                "and pricing-card.yaml are updated together",
+                file="README.md/SKILL.md/skill.yaml/cards",
+            )
+
+        canonical_version = manifest.get("version") or next(iter(versions.values()), "")
+        for manifest_rel, encrypted_version in encrypted_versions:
+            if canonical_version and encrypted_version != canonical_version:
+                self.add(
+                    "warn",
+                    "ENC_BUNDLE_STALE",
+                    f"{manifest_rel} is {encrypted_version}, canonical source is {canonical_version}",
+                    "Rebuild and publish the encrypted bundle before reporting distribution sync",
+                    file=manifest_rel,
+                )
+
+        manifest_id = manifest.get("id")
+        skill_name = str(fm.get("name", ""))
+        if manifest_id and skill_name and manifest_id != skill_name:
+            self.add(
+                "warn",
+                "MANIFEST_ID_DRIFT",
+                f"skill.yaml id '{manifest_id}' does not match SKILL.md name '{skill_name}'",
+                "Keep the runtime manifest id and Agent Skills name in sync",
+                file="skill.yaml",
+            )
+
+    def check_portability(self):
+        files = []
+        spec = canonical_skill_md(self.dir)
+        candidates = ((spec.relative_to(self.dir).as_posix(), spec), ("README.md", self.dir / "README.md"))
+        for rel, path in candidates:
+            if path.exists():
+                files.append((rel, path))
+        scripts_dir = self.dir / "scripts"
+        if scripts_dir.exists():
+            for path in scripts_dir.glob("*.py"):
+                files.append((f"scripts/{path.name}", path))
+
+        combined = "\n".join(
+            path.read_text(encoding="utf-8", errors="replace")
+            for _, path in files
+        )
+        has_user_config = any(cue in combined for cue in USER_CONFIG_CUES)
+        skill_md = canonical_skill_md(self.dir)
+        compatibility = ""
+        if skill_md.exists():
+            fm, _ = parse_frontmatter(skill_md.read_text(encoding="utf-8", errors="replace"))
+            compatibility = str(fm.get("compatibility", ""))
+        author_only = bool(
+            re.search(
+                r"author-only|internal only|LovStudio internal|Mark/LovStudio private",
+                compatibility,
+                re.I,
+            )
+        )
+
+        for rel, path in files:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if "LOCAL_PATH_PATTERNS" in text and "def check_portability" in text:
+                continue
+            for code, pattern, label in LOCAL_PATH_PATTERNS:
+                if not has_required_local_path(text, pattern):
+                    continue
+                if code == "LOCAL_CLAUDE_PATH" and rel == "README.md" and "git clone" in text:
+                    severity = "info"
+                    hint = "Install examples may mention ~/.claude, but runtime examples should use SKILL_DIR or CLAUDE_SKILLS_DIR"
+                elif author_only:
+                    severity = "info"
+                    hint = "Author-only skill: keep local paths centralized in one configuration section"
+                elif has_user_config:
+                    severity = "info"
+                    hint = "User config exists; verify this path is only a fallback/example and not required"
+                else:
+                    severity = "warn"
+                    hint = (
+                        "Move user-specific paths to CLI flags, env vars, or "
+                        "references/user-config.md; do not require this local path"
+                    )
+                self.add(
+                    severity,
+                    code,
+                    f"{rel} references local/client-specific path '{label}'",
+                    hint,
+                    file=rel,
+                )
+
+    def check_readme(self):
+        path = self.dir / "README.md"
+        if not path.exists():
+            return
+        text = path.read_text(encoding="utf-8")
+        if re.search(r"TODO:\s", text) or "pip install TODO" in text or "--output TODO" in text:
+            self.add(
+                "error",
+                "README_TODO",
+                "README.md contains TODO placeholders",
+                "Fill in install, usage, options",
+                file="README.md",
+            )
+        if not re.search(r"!\[Version\]\(https://img\.shields\.io/badge/version-", text):
+            self.add(
+                "warn",
+                "README_NO_BADGE",
+                "README.md missing version badge",
+                "Add ![Version](https://img.shields.io/badge/version-X.Y.Z-CC785C) near the top",
+                file="README.md",
+            )
+        has_install = any(
+            token in text
+            for token in (
+                "npx lovstudio skills add",
+                "npx skills add",
+                "git clone https://github.com/lovstudio",
+                "/plugin install",
+            )
+        )
+        if not has_install:
+            self.add(
+                "warn",
+                "README_NO_INSTALL",
+                "README.md missing install command",
+                "Add an install block using npx skills add or git clone into ${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}/lov-<name>",
+                file="README.md",
+            )
+
+    def check_changelog(self):
+        path = self.dir / "CHANGELOG.md"
+        if not path.exists():
+            self.add(
+                "warn",
+                "NO_CHANGELOG",
+                "CHANGELOG.md not found",
+                "Run bump_version.py to create an initial entry",
+                file="CHANGELOG.md",
+            )
+
+    def check_scripts(self):
+        scripts_dir = self.dir / "scripts"
+        if not scripts_dir.exists():
+            return  # pure-instruction skills allowed
+        for py in scripts_dir.glob("*.py"):
+            text = py.read_text(encoding="utf-8", errors="replace")
+            rel = f"scripts/{py.name}"
+            if "argparse" not in text and "if __name__" in text:
+                self.add(
+                    "warn",
+                    "SCRIPT_NO_ARGPARSE",
+                    f"{py.name} is a CLI but does not use argparse",
+                    "Rewrite to use argparse for CLI parity with other skills",
+                    file=rel,
+                )
+            if (
+                re.search(r"pip install .*--break-system-packages", text)
+                and re.search(r"(subprocess\.(run|call|Popen)|os\.system)", text)
+            ):
+                self.add(
+                    "info",
+                    "SCRIPT_PIP_FLAG",
+                    f"{py.name} shells out pip install --break-system-packages (should be in docs, not code)",
+                    "Move pip install guidance to SKILL.md/README.md",
+                    file=rel,
+                )
+            if py.stat().st_size > 80_000:
+                self.add(
+                    "info",
+                    "SCRIPT_LARGE",
+                    f"{py.name} is large (>80KB) — verify it's still a single-file CLI",
+                    "",
+                    file=rel,
+                )
+            # CJK-relevant text-rendering scripts should handle mixed text.
+            # Image-only helpers inside document skills (logo/QR compositing,
+            # PDF raster stitching, etc.) do not need font fallback logic.
+            renders_text = any(
+                marker in text.lower()
+                for marker in (
+                    "add_run(",
+                    "add_paragraph(",
+                    "draw.text",
+                    "imagefont",
+                    "reportlab",
+                    "fpdf",
+                    "python-pptx",
+                    "pptx",
+                    "docx",
+                )
+            )
+            if renders_text and ("pdf" in self.name or "docx" in self.name or "deck" in self.name):
+                if "cjk" not in text.lower() and "chinese" not in text.lower() and "中文" not in text:
+                    self.add(
+                        "info",
+                        "SCRIPT_NO_CJK_HINT",
+                        f"{py.name}: document-skill script has no visible CJK handling code",
+                        "Verify CJK/Latin mixed rendering works correctly",
+                        file=rel,
+                    )
+
+    def run(self) -> list[dict]:
+        self.check_structure()
+        self.check_skill_md()
+        self.check_readme()
+        self.check_changelog()
+        self.check_scripts()
+        self.check_portability()
+        return self.findings
+
+
+def format_text(findings: list[dict], skill_dir: Path) -> str:
+    if not findings:
+        return f"✓ {skill_dir.name}: no issues found\n"
+    lines = [f"Lint report for {skill_dir.name}:", ""]
+    by_sev = {s: [f for f in findings if f["severity"] == s] for s in SEVERITIES}
+    marks = {"error": "✗", "warn": "!", "info": "·"}
+    for sev in SEVERITIES:
+        for f in by_sev[sev]:
+            loc = f" [{f['file']}]" if f["file"] else ""
+            lines.append(f"  {marks[sev]} {sev.upper():5} {f['code']:20}{loc}  {f['message']}")
+            if f["fix_hint"]:
+                lines.append(f"      → {f['fix_hint']}")
+    lines.append("")
+    lines.append(
+        f"Summary: {len(by_sev['error'])} errors, {len(by_sev['warn'])} warnings, {len(by_sev['info'])} info"
+    )
+    return "\n".join(lines) + "\n"
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Audit a LovStudio/Agent Skill")
+    ap.add_argument("name", nargs="?", help="Skill name (with or without lov- prefix)")
+    ap.add_argument("--path", help="Absolute path to skill directory (overrides name)")
+    ap.add_argument("--all", action="store_true", help="Audit every SKILL.md below the detected root")
+    ap.add_argument("--root", help="Root directory for --all (defaults to detected skills root)")
+    ap.add_argument("--json", action="store_true", help="Output findings as JSON")
+    args = ap.parse_args()
+
+    if args.all:
+        root = Path(args.root).resolve() if args.root else find_repo_root(Path.cwd())
+        reports = []
+        for skill_dir in discover_skill_dirs(root):
+            linter = Linter(skill_dir)
+            reports.append({"skill": skill_dir.name, "path": str(skill_dir), "findings": linter.run()})
+        if args.json:
+            print(
+                json.dumps(
+                    {
+                        "root": str(root),
+                        "reports": reports,
+                        "counts": {
+                            severity: sum(
+                                1
+                                for report in reports
+                                for finding in report["findings"]
+                                if finding["severity"] == severity
+                            )
+                            for severity in SEVERITIES
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            total = {"error": 0, "warn": 0, "info": 0}
+            for report in reports:
+                counts = {sev: len([f for f in report["findings"] if f["severity"] == sev]) for sev in SEVERITIES}
+                for sev in SEVERITIES:
+                    total[sev] += counts[sev]
+                print(
+                    f"{report['skill']}: "
+                    f"{counts['error']} errors, {counts['warn']} warnings, {counts['info']} info"
+                )
+            print(
+                f"\nSummary: {len(reports)} skills, "
+                f"{total['error']} errors, {total['warn']} warnings, {total['info']} info"
+            )
+        if any(f["severity"] == "error" for r in reports for f in r["findings"]):
+            sys.exit(2)
+        return
+
+    if not args.name and not args.path:
+        ap.error("provide a skill name or --path")
+
+    skill_dir = resolve_skill_dir(args.name or "", args.path)
+    linter = Linter(skill_dir)
+    findings = linter.run()
+
+    if args.json:
+        counts = {severity: sum(1 for f in findings if f["severity"] == severity) for severity in SEVERITIES}
+        print(
+            json.dumps(
+                {"skill": skill_dir.name, "path": str(skill_dir), "counts": counts, "findings": findings},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    else:
+        sys.stdout.write(format_text(findings, skill_dir))
+
+    # Exit non-zero if errors present
+    if any(f["severity"] == "error" for f in findings):
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    main()

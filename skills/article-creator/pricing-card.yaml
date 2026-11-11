@@ -1,0 +1,17 @@
+schema: lovstudio/pricing-card/v1
+version: "0.10.1"
+model: one_time
+currency: CNY
+list_price_cny: 19.9
+credits: 280
+value_anchor: "把写作、模板、品牌双封面、正文配图和质量验收合成一个可重复、可回读的公众号文章交付流程。"
+basis: "280 Credits 一次性解锁当前版本的完整文章包工作流，价格用于验证真实付费意愿；相对免费阶段增加的是正文配图决策、文风散列绑定与更严格的质量门。"
+boundary: "包含 Skill 源码、模板、确定性合成脚本、离线质量门与当前版本说明；不包含托管模型调用、素材版权、云端存储、多人审批、公众号凭据、代运营或代发布。源码保存在私有仓库，购买后按版本下载。"
+review_trigger: "首发 30 天、100 次付费兑换、版本变化、平均单买家支持超过 15 分钟，或交付方式变化时复评。"
+confidence: medium
+distribution:
+  local: available
+  github: available
+  lovstudio: live
+  workbuddy: not_prepared
+  skillpay: not_prepared

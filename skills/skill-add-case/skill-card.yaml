@@ -1,0 +1,116 @@
+schema: lovstudio/skill-card/v1
+version: "0.5.1"
+description: >-
+  Prepare one accepted result with all participating Skill IDs for website import or submit it through LovStudio
+  account authentication, then verify the public case and accepted images.
+owner:
+  team: "LovStudio Skill contributors"
+  contact: "Source repository maintainers"
+license:
+  name: MIT
+  terms: "Use, modify, and redistribute under the included MIT License."
+  url: "LICENSE"
+use_case:
+  audience: "Skill users, maintainers, and catalog editors"
+  scenario: "A completed Skill result has explicit acceptance and approval to publish its reviewed public bundle."
+  tasks:
+    - "Qualify the exact accepted result and redact private data."
+    - "Prepare importable JSON or submit a case through the signed-in website API."
+    - "Optionally link the contributor's existing public Session without uploading a transcript."
+    - "Verify source publication and the live LovStudio detail page when applicable."
+deployment:
+  geography: global
+  environments:
+    - "Local agent workspace for offline JSON preparation"
+    - "LovStudio account and network access for website submission"
+requirements:
+  credentials: "Ordinary LovStudio login for website submission; GitHub permissions only for the explicit legacy maintainer route."
+  dependencies:
+    - "lov-branding-consistency"
+  runtime:
+    - "Python 3.10 or newer"
+    - "PyYAML for generated source validation"
+risks:
+  - risk: "A merely successful command could be misrepresented as a user-approved case."
+    mitigation: "Require explicit acceptance tied to the exact result before any mutation."
+  - risk: "A public case could leak secrets, private paths, transcript content, or customer data."
+    mitigation: "Fail on high-risk patterns, require a privacy note, inspect the final diff, and publish only approved evidence."
+  - risk: "A client-selected price or public attachment URL could bypass the intended paid access contract."
+    mitigation: "Accept pricing only from the server and reject attachments in paid Session uploads."
+  - risk: "A push or cache response could be mislabeled as a live website update."
+    mitigation: "Verify both public raw JSON fingerprint and HTTP 200 detail-page marker before reporting live-verified."
+references:
+  - title: "Primary Skill instructions"
+    path: "SKILL.md"
+  - title: "Case contract"
+    path: "references/case-contract.md"
+  - title: "Composition analysis"
+    path: "references/skill-composition.md"
+output:
+  types:
+    - "validated Skill case record"
+    - "website import JSON and optional public Session link"
+    - "public synchronization evidence"
+  formats:
+    - "JSON"
+    - "plain-text status report"
+  parameters:
+    - "participating catalog Skill IDs"
+    - "accepted case JSON object"
+    - "accepted final images and optional existing public Session URL"
+    - "optional public cases and detail-page URLs"
+  validation:
+    - "explicit user-confirmed evidence"
+    - "accepted final image required for primarily visual cases"
+    - "server-owned atomic commit and immutable case ID retry checks"
+    - "reviewed payload fingerprint and fresh authenticated dry-run"
+    - "optional Session ownership and public access validated by the server"
+    - "public JSON fingerprint and detail-page marker readback"
+    - "rendered-page image references and non-empty image content"
+    - "independent public case page with actual Input, Prompt and Output headings"
+  description: "One truthful public case with prepared, validated, published and live-verified states."
+ethical_considerations: >-
+  The workflow minimizes public data, requires user acceptance, rejects obvious
+  credentials and private paths, and does not manufacture testimonials, metrics,
+  artifacts, or publication status.
+dimensions:
+  - id: evidence-integrity
+    label: "Evidence integrity"
+    description: "Ties a real input, minimum prompt, real output, verification method, and explicit acceptance to one case."
+    evidence: "The first case records the direct request and the concrete source and verification helpers created from it."
+    score: "source-verified"
+  - id: privacy
+    label: "Publication privacy"
+    description: "Prevents obvious secrets and private absolute paths from entering public case data."
+    evidence: "The deterministic helper scans canonical case JSON and validates all relative case assets inside the target root."
+    score: "source-verified"
+  - id: mutation-safety
+    label: "Mutation safety"
+    description: "Requires reviewed content and lets the server preserve existing cases through atomic submission."
+    evidence: "Client tests cover dry-run, exact-content confirmation, expired login and immutable retry identity."
+    score: "source-verified"
+  - id: paid-session-integrity
+    label: "Paid Session integrity"
+    description: "Links the accepted case to a redacted full transcript at a server-authoritative Credits price."
+    evidence: "The composed helper validates target Skill and case IDs, rejects client pricing, and writes only after upload succeeds."
+    score: "source-verified"
+  - id: live-truthfulness
+    label: "Live-state truthfulness"
+    description: "Separates prepared, validated, published, and live-verified states."
+    evidence: "The public verifier matched the canonical case SHA-256 and found the expected marker on the HTTP 200 LovStudio detail page on 2026-08-23."
+    score: "live-verified"
+pricing:
+  model: free
+  currency: CNY
+  list_price_cny: 0
+  basis: "A small evidence utility improves the credibility of the wider public Skill catalog."
+  boundary: "Includes case maintenance and verification; excludes unauthorized repository or catalog creation."
+  review_trigger: "Revisit if the public case schema or LovStudio synchronization contract changes."
+  confidence: internal
+distribution:
+  paid:
+    - "workbuddy: not planned"
+    - "skillpay: not planned"
+  free:
+    - "github: source repository and versioned releases"
+    - "lovstudio: official Skill catalog and installation entry"

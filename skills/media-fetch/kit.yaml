@@ -1,0 +1,38 @@
+name: media-fetch
+display_name: "Media Fetch"
+version: "0.4.0"
+entrypoint: lov-media-fetch
+runtime: skill-runtime/v1
+profile:
+  manifest: skill.yaml
+modules:
+  - id: media-discovery
+    skill: lov-media-discovery
+    path: skills/media-discovery
+  - id: media-selection
+    skill: lov-media-selection
+    path: skills/media-selection
+  - id: media-acquisition
+    skill: lov-media-acquisition
+    path: skills/media-acquisition
+  - id: media-verification
+    skill: lov-media-verification
+    path: skills/media-verification
+pipelines:
+  full:
+    - media-discovery
+    - media-selection
+    - media-acquisition
+    - media-verification
+  choose:
+    - media-discovery
+    - media-selection
+  download-known:
+    - media-selection
+    - media-acquisition
+    - media-verification
+  resume:
+    - media-acquisition
+    - media-verification
+  verify:
+    - media-verification

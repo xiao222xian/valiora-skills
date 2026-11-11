@@ -1,0 +1,38 @@
+# Changelog
+
+## [0.3.2] - 2026-10-31
+
+### Fixed
+
+- 恢复 2026-08-09 去品牌化误改的 Studio 文案：色彩面板副标题回到品牌名（按 BRAND-08 写作 `Lovstudio.AI signal`，替换前为 `LovStudio signal`，见 d8c39a1^）
+
+## [0.3.1] - 2026-09-25
+
+### Added
+
+- 合并本地未提交改动到上游 0.3.0 之上
+- 本地改动：统一展示名为「视频章节师」，保持调用 ID 与能力契约。
+- 本地改动：统一展示名称为「视频章节编排」，保留原有调用 ID 与能力边界。
+
+## [0.3.0] - 2026-08-24
+
+### Added
+
+- add the shared feedback-classification and approval-invalidation gate used by every LovStudio Skill
+
+## 0.2.0 — 2026-07-27
+
+- Upgrade the subtitle planner into a composable Video Chapter Skill Kit.
+- Add a canonical `chapter-project.json` schema and deterministic project CLI.
+- Add the React Video Chapter Studio with live preview, boundary editing, and styling.
+- Render transparent ProRes 4444 chapter overlays with continuous progress.
+- Burn overlays into H.264 MP4 while preserving source audio.
+- Export 剪映/CapCut packages with overlay, JSON, timestamps, CSV, and instructions.
+- Add four routed sub-skills for planning, design, rendering, and editor export.
+
+## 0.1.0 — 2026-07-27
+
+- Initial public release.
+- Parse SRT and WebVTT subtitles without third-party dependencies.
+- Produce chronological transcript windows and meaningful-gap evidence.
+- Define a semantic 3–5 chapter workflow with Chapter Bar and platform output.

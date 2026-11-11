@@ -1,0 +1,10 @@
+schema: lovstudio/pricing-card/v1
+version: "0.2.0"
+model: one_time
+currency: CNY
+list_price_cny: 0.99
+value_anchor: "把口述转写中的最终意图消解、信息与声音保真、逻辑重建和清爽排版收敛成一次可复用整理。"
+basis: "模型建议稳定价为 ¥4.99–9.99；¥0.99 是用户明确指定的全平台首发验证价，用于降低首次购买摩擦并积累真实转化与复用证据。"
+boundary: "包含 ASR 文本清理、改口消解、声音与情绪保真、逻辑重建和排版；不包含音频识别、词库同步、事实研究、任务执行、文件发布或第三方服务。"
+review_trigger: "首发 30 天、100 次付费兑换、版本变化或平均单买家支持超过 15 分钟时复评。"
+confidence: low

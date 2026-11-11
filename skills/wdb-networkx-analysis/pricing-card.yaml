@@ -1,0 +1,12 @@
+schema: lovstudio/pricing-card/v1
+version: "0.1.0"
+model: paid
+currency: CNY
+list_price_cny: 19
+list_price_credits: 268
+credit_rule: "官网换算规则 credits = round(人民币 / 7.1 × 100)"
+value_anchor: "从本地微信数据到一份覆盖 17 类社交网络分析的报告，手工完成需要解决数据导出、二部图建模、随机基线、算法性能与报告排版，通常耗时数小时到数天；本 Skill 把这条已在万人通讯录上验证的流程固化为四个脚本和一套写作约束。"
+basis: "价格由作者设定为 19 元：覆盖一次性获取与后续重复运行；成本来自流程验证、性能修正（结构洞向量化）、隐私设计与维护微信库结构变化的持续投入。"
+boundary: "包含导出、分析、出图、报告脚本与使用说明、演示网络；不包含微信密钥准备（需另装 lov-wdb-cli）、云端计算、人工解读或报告的公开发布。"
+review_trigger: "微信本地库结构变化导致导出失效、networkx 主要版本升级影响结果，或用户反馈显示价值与价格明显不符时复评。"
+confidence: internal

@@ -1,0 +1,42 @@
+[
+  {
+    "type": "case",
+    "title": "《指环王》：从英文 SRT 到可学习字幕",
+    "titleEn": "The Lord of the Rings: from English SRT to learner subtitles",
+    "description": "以《护戒使者》英文字幕为输入，把 CET4 作为最低难度线，覆盖 CET4 及以上真正影响理解的语言单元：生僻词、习语/谚语、俚语与文化表达，以及必要时的复杂句意。用户显式开启艺术层后，再结合字幕文字、语义、联网资料和局部视频证据生成 Arwen 人物卡与优雅克制的全局水印。",
+    "descriptionEn": "Use the English subtitle track from The Fellowship of the Ring with CET-4 as the minimum difficulty floor. Keep CET-4 and higher language units that block comprehension—rare words, idioms/proverbs, slang, cultural expressions, and genuinely difficult sentence senses—then add an optional Arwen card and restrained global watermark after the user enables the art layer.",
+    "testimonial": "输入的是字幕，得到的是一套可以直接观看、复查和继续迭代的学习字幕成品。",
+    "testimonialEn": "The input is a subtitle track; the output is a watchable, auditable, and iteratable learner-subtitle package.",
+    "author": "Subtitle Gloss · 真实交付案例",
+    "cover": "/images/skills/subtitle-gloss/lotr-arwen-card.jpg",
+    "gallery": [
+      "/images/skills/subtitle-gloss/lotr-fellowship-gloss.jpg"
+    ],
+    "languageUnits": [
+      "生僻词 / rare words",
+      "习语、谚语 / idioms & proverbs",
+      "俚语、文化表达 / slang & culture",
+      "复杂句子 / complex sentences"
+    ],
+    "input": {
+      "label": "Input",
+      "items": [
+        "电影中的英文字幕文件（从视频提取即可，不必上传大视频）",
+        "学习者 Profile：CET4 及以上；提示语言：中文",
+        "可选偏好：开启 ASS 人物卡；水印为“手工川工作室 Agent 字幕组”"
+      ]
+    },
+    "prompt": {
+      "label": "Prompt",
+      "text": "请基于这份《指环王：护戒使者》英文字幕，把 CET4 作为最低难度线，解释 CET4 及以上真正影响理解的生僻词、习语/谚语、俚语、文化表达和复杂句子，保留原时间轴；开启人物卡后，用字幕、语义、联网和局部视频证据综合判断新人物首次有意义出场，输出克制的 ASS 人物艺术字幕，水印使用“手工川工作室 Agent 字幕组”。"
+    },
+    "output": {
+      "label": "Output",
+      "items": [
+        "学习字幕 SRT：cue ID、时间轴和对白保持不变，只加入必要解释",
+        "可选 ASS：Arwen 人物卡、优雅克制的艺术层和统一品牌水印",
+        "可在播放器中直接回看，并根据文字、语义、联网和视频证据继续校正"
+      ]
+    }
+  }
+]

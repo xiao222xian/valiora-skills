@@ -1,0 +1,87 @@
+schema: lovstudio/skill-card/v1
+version: 0.1.1
+description: 微探命令行：读取、检索、采集和导出微信公众号文章。
+owner:
+  team: LovStudio
+  contact: 本 app 仓库维护者
+license:
+  name: MIT
+  terms: 代码按 MIT 使用，文章版权归原作者。
+  url: LICENSE
+use_case:
+  audience: 微探用户与本地 Agent
+  scenario: 从已有缓存检索文章并导出可回读文件。
+  tasks:
+  - 列出公众号
+  - 检索文章
+  - 导出缓存
+  - 授权采集
+deployment:
+  geography: local
+  environments:
+  - macOS 已验证
+  - 其他平台尚未验证
+requirements:
+  credentials: 仅在线搜索和采集需要 app 中的有效会话，不显示或导出凭据。
+  dependencies:
+  - bundled wcx
+  - lov-branding-consistency
+  runtime:
+  - macOS
+  - uv
+  - Python 3.10+
+risks:
+- risk: 同标题文章或已有文件被覆盖
+  mitigation: 独立文章目录、已有目标拒绝、文件回读验证。
+- risk: 采集受频率保护或登录失效影响
+  mitigation: 复用 wcx 原始保护，明确失败和部分保存状态。
+- risk: 文章包含私人内容
+  mitigation: 只在本地按请求导出，不写入公共案例或隐式上传。
+references:
+- title: Primary Skill instructions
+  path: SKILL.md
+- title: Validation evidence
+  path: references/validation.md
+output:
+  types:
+  - JSON records
+  - export directory
+  formats:
+  - JSON
+  - CSV
+  - Markdown
+  - HTML
+  parameters:
+  - 公众号精确选择
+  - 关键词与分页
+  - 格式与目标
+  - 采集篇数与方向
+  validation:
+  - 真实缓存读取
+  - 正文与索引回读
+  - SHA-256 校验
+  - 错误非零退出
+  description: 本地查询结果与经过验证的文章文件。
+ethical_considerations: 仅处理用户有权访问的内容，保留来源，不绕过访问或频率保护，不隐式发布。
+dimensions:
+- id: correctness
+  label: 真实后端
+  description: 调用 app 仓库的 wcx，读取原生缓存。
+  evidence: references/validation.md 的真实缓存 E2E。
+  score: null
+- id: integrity
+  label: 文件完整性
+  description: 防止同标题覆盖，回读索引与正文。
+  evidence: references/validation.md 的文件哈希和正文校验。
+  score: null
+- id: usability
+  label: 可调用性
+  description: 源码、已安装命令和 Skill 入口可从项目外调用。
+  evidence: references/validation.md 的中立目录调用。
+  score: null
+pricing:
+  model: channel_managed
+  basis: 由官网发布流程维护。
+distribution:
+  paid: []
+  free: []

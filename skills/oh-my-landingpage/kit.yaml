@@ -1,0 +1,56 @@
+name: oh-my-landingpage
+display_name: "Oh My Landing Page"
+version: "0.4.1"
+entrypoint: lov-oh-my-landingpage
+runtime: skill-runtime/v1
+profile:
+  manifest: skill.yaml
+modules:
+  - id: landing-brand
+    skill: lov-landing-brand
+    path: skills/landing-brand
+  - id: landing-strategy
+    skill: lov-landing-strategy
+    path: skills/landing-strategy
+  - id: landing-art-direction
+    skill: lov-landing-art-direction
+    path: skills/landing-art-direction
+  - id: landing-builder
+    skill: lov-landing-builder
+    path: skills/landing-builder
+  - id: landing-review
+    skill: lov-landing-review
+    path: skills/landing-review
+pipelines:
+  initialize:
+    - landing-brand
+    - landing-strategy
+    - landing-art-direction
+    - landing-builder
+    - landing-review
+  optimize:
+    - landing-review
+    - landing-brand
+    - landing-strategy
+    - landing-art-direction
+    - landing-builder
+    - landing-review
+  rebrand:
+    - landing-review
+    - landing-brand
+    - landing-strategy
+    - landing-art-direction
+    - landing-builder
+    - landing-review
+  refresh-copy:
+    - landing-brand
+    - landing-strategy
+    - landing-builder
+    - landing-review
+  refresh-assets:
+    - landing-brand
+    - landing-art-direction
+    - landing-builder
+    - landing-review
+  audit:
+    - landing-review
